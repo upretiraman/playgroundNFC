@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import Container from "./Container";
 
 const links = [
@@ -14,6 +15,46 @@ const links = [
   { href: "/news", label: "News" },
   { href: "/contact", label: "Contact" },
 ];
+
+function AccountControl({ onNavigate }: { onNavigate?: () => void }) {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") return null;
+
+  if (!session) {
+    return (
+      <Link
+        href="/login"
+        onClick={onNavigate}
+        className="rounded border border-cream-dark px-4 py-2 font-display text-sm uppercase tracking-wide text-cream-dark transition-colors hover:border-cream hover:text-cream"
+      >
+        Login
+      </Link>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Link
+        href="/dashboard"
+        onClick={onNavigate}
+        className="rounded border border-cream-dark px-4 py-2 font-display text-sm uppercase tracking-wide text-cream-dark transition-colors hover:border-cream hover:text-cream"
+      >
+        Dashboard
+      </Link>
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.();
+          signOut({ callbackUrl: "/" });
+        }}
+        className="rounded px-4 py-2 font-display text-sm uppercase tracking-wide text-cream-dark transition-colors hover:text-cream"
+      >
+        Sign Out
+      </button>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -41,27 +82,30 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {links.map((link) => {
-            const active =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded px-4 py-2 font-display text-sm uppercase tracking-wide transition-colors ${
-                  active
-                    ? "bg-crimson text-cream"
-                    : "text-cream-dark hover:bg-crimson-deep hover:text-cream"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="hidden items-center gap-4 md:flex">
+          <nav className="flex items-center gap-1">
+            {links.map((link) => {
+              const active =
+                link.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded px-4 py-2 font-display text-sm uppercase tracking-wide transition-colors ${
+                    active
+                      ? "bg-crimson text-cream"
+                      : "text-cream-dark hover:bg-crimson-deep hover:text-cream"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <AccountControl />
+        </div>
 
         <button
           type="button"
@@ -100,6 +144,9 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <div className="px-6 py-4">
+            <AccountControl onNavigate={() => setOpen(false)} />
+          </div>
         </nav>
       )}
     </header>

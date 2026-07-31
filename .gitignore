@@ -137,3 +137,14 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+/src/generated/prisma
+
+# Prisma SQLite database (local dev data — not committed)
+/dev.db
+/dev.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+
+# Claude Code local session settings (machine-specific, not shared)
+/.claude/settings.local.json
