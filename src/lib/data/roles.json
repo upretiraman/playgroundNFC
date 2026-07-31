@@ -1,0 +1,100 @@
+[
+  {
+    "slug": "chair",
+    "title": "Club Chair / Coordinator",
+    "reportsTo": "General Membership",
+    "summary": "Holds overall responsibility for the club's organization, direction, and day-to-day coordination. Acts as the central point of contact and chairs Committee meetings.",
+    "duties": [
+      "Coordinates the Committee and chairs regular meetings",
+      "Sets and communicates the club calendar in coordination with other roles",
+      "Ensures the club's rules and protocol are followed and kept up to date",
+      "Represents the club in external matters (venues, leagues, other clubs)",
+      "Mediates disputes and escalates disciplinary matters to the Committee when needed"
+    ]
+  },
+  {
+    "slug": "vice-chair",
+    "title": "Vice-Chair / Deputy Coordinator",
+    "reportsTo": "Club Chair",
+    "summary": "Supports the Chair and steps in when the Chair is unavailable. Often takes on a specific focus area agreed with the Committee.",
+    "duties": [
+      "Deputizes for the Chair at meetings and events when required",
+      "Supports coordination of a specific area (e.g., membership, competitions)",
+      "Helps onboard new Committee members and new club members"
+    ]
+  },
+  {
+    "slug": "head-coach",
+    "title": "Head Coach / Trainer",
+    "reportsTo": "Club Chair",
+    "summary": "Responsible for the sporting and technical development of the club. Owns training content and has final say on team selection alongside the captain.",
+    "duties": [
+      "Plans and runs training sessions",
+      "Designs drills and monitors individual and team development",
+      "Gives feedback to members on performance and progress",
+      "Leads team selection decisions together with the captain",
+      "Sets standards for conduct and effort during training and matches"
+    ]
+  },
+  {
+    "slug": "team-captain",
+    "title": "Team Captain",
+    "reportsTo": "Head Coach",
+    "summary": "The on-field leader and link between members and the Committee. Represents the playing group's voice in club decisions.",
+    "duties": [
+      "Leads the team during matches and events",
+      "Co-decides team selection with the Coach",
+      "Maintains discipline, morale, and team spirit",
+      "Raises player concerns or feedback with the Committee"
+    ]
+  },
+  {
+    "slug": "treasurer",
+    "title": "Treasurer",
+    "reportsTo": "Club Chair / Committee",
+    "summary": "Manages all club finances and ensures transparency in how funds are collected and spent.",
+    "duties": [
+      "Collects membership fees and dues on schedule",
+      "Records all income and expenses",
+      "Approves routine, low-value expenses within agreed limits",
+      "Shares regular financial updates with members",
+      "Flags any budget concerns to the Committee"
+    ]
+  },
+  {
+    "slug": "secretary",
+    "title": "Secretary",
+    "reportsTo": "Club Chair / Committee",
+    "summary": "Keeps the club's administrative records and communications organized.",
+    "duties": [
+      "Takes and distributes minutes from Committee and member meetings",
+      "Maintains the membership list and contact details",
+      "Keeps the club protocol and any policy documents up to date",
+      "Handles official correspondence (venues, leagues, insurers)"
+    ]
+  },
+  {
+    "slug": "equipment-logistics",
+    "title": "Equipment & Logistics Manager",
+    "reportsTo": "Club Chair",
+    "summary": "Ensures the club has what it needs, where it needs it, when it needs it.",
+    "duties": [
+      "Manages kit, equipment, and supplies",
+      "Ensures equipment is available and in good condition for training/matches",
+      "Coordinates venue or field bookings",
+      "Organizes transport or logistics for away matches/events where needed"
+    ]
+  },
+  {
+    "slug": "communications-events",
+    "title": "Communications & Events Manager",
+    "reportsTo": "Club Chair",
+    "summary": "Owns the club's public presence and internal communication and helps organize social/community events.",
+    "duties": [
+      "Manages social media and group chat announcements",
+      "Shares results, highlights, and updates with members",
+      "Supports recruitment of new members",
+      "Organizes team activities and community events alongside the Committee"
+    ]
+  }
+]

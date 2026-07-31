@@ -1,0 +1,50 @@
+[
+  {
+    "id": "boys-tue",
+    "team": "boys",
+    "dayOfWeek": "Tuesday",
+    "startTime": "19:00",
+    "endTime": "20:30",
+    "venue": "Sportpark Valznerweiher",
+    "address": "Nürnberg, Germany (exact pitch to be confirmed)",
+    "notes": "Bring both light and dark shirts for scrimmages."
+  },
+  {
+    "id": "boys-thu",
+    "team": "boys",
+    "dayOfWeek": "Thursday",
+    "startTime": "19:00",
+    "endTime": "20:30",
+    "venue": "Sportpark Valznerweiher",
+    "address": "Nürnberg, Germany (exact pitch to be confirmed)"
+  },
+  {
+    "id": "girls-wed",
+    "team": "girls",
+    "dayOfWeek": "Wednesday",
+    "startTime": "18:30",
+    "endTime": "20:00",
+    "venue": "Sportpark Valznerweiher",
+    "address": "Nürnberg, Germany (exact pitch to be confirmed)",
+    "notes": "All skill levels welcome — beginners paired with an experienced teammate."
+  },
+  {
+    "id": "girls-sat",
+    "team": "girls",
+    "dayOfWeek": "Saturday",
+    "startTime": "10:00",
+    "endTime": "11:30",
+    "venue": "Sportpark Valznerweiher",
+    "address": "Nürnberg, Germany (exact pitch to be confirmed)"
+  },
+  {
+    "id": "both-sun",
+    "team": "both",
+    "dayOfWeek": "Sunday",
+    "startTime": "11:00",
+    "endTime": "13:00",
+    "venue": "Sportpark Valznerweiher",
+    "address": "Nürnberg, Germany (exact pitch to be confirmed)",
+    "notes": "Open scrimmage / match day for both teams, followed by team lunch."
+  }
+]

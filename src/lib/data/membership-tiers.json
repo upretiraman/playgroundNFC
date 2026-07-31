@@ -1,0 +1,23 @@
+[
+  {
+    "slug": "active",
+    "name": "Active Member",
+    "description": "Regularly participates in training, matches/events, and club activities; full voting rights and priority for selection.",
+    "friendlies": "Yes — priority selection",
+    "tournaments": "Yes — eligible, subject to selection"
+  },
+  {
+    "slug": "supporting",
+    "name": "Supporting Member",
+    "description": "Contributes to the club (financially or otherwise) without regular active participation; may join activities as space allows.",
+    "friendlies": "Yes — if space allows",
+    "tournaments": "No, unless upgraded to Active"
+  },
+  {
+    "slug": "guest-trial",
+    "name": "Guest / Trial Member",
+    "description": "Attends on a temporary basis to assess fit, subject to the same conduct standards as full members.",
+    "friendlies": "Yes — as needed, esp. for evaluation",
+    "tournaments": "No"
+  }
+]

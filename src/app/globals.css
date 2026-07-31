@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  /* Deep oxblood maroon, sampled from the NFC Nürnberg crest ring */
+  --color-crimson: #5c0712;
+  --color-crimson-dark: #3d0710;
+  --color-crimson-deep: #200409;
+  /* Vivid scarlet from the crest's flag panel — used sparingly as a pop accent */
+  --color-crimson-light: #d6163d;
+
+  /* Nepal flag blue + a restrained gold, used sparingly as accents */
+  --color-nepal-blue: #003893;
+  --color-gold: #cf9f3f;
+
+  --color-charcoal: #1c1614;
+  --color-charcoal-soft: #423731;
+  --color-cream: #faf6f0;
+  --color-cream-dark: #f0e9df;
+}
+
+@theme inline {
+  --color-crimson: var(--color-crimson);
+  --color-crimson-dark: var(--color-crimson-dark);
+  --color-crimson-deep: var(--color-crimson-deep);
+  --color-crimson-light: var(--color-crimson-light);
+  --color-nepal-blue: var(--color-nepal-blue);
+  --color-gold: var(--color-gold);
+  --color-charcoal: var(--color-charcoal);
+  --color-charcoal-soft: var(--color-charcoal-soft);
+  --color-cream: var(--color-cream);
+  --color-cream-dark: var(--color-cream-dark);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display), Arial, Helvetica, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* Hexagonal crest motif, echoes the shield inside the club badge */
+.hex-clip {
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+}
+
+/* Subtle diagonal split reminiscent of the crest's flag/shield halves */
+.diagonal-split {
+  background: linear-gradient(
+    135deg,
+    var(--color-crimson) 0%,
+    var(--color-crimson) 49.5%,
+    var(--color-cream) 50.5%,
+    var(--color-cream) 100%
+  );
+}
+
+.crest-ring {
+  border: 3px solid var(--color-crimson);
+  box-shadow: inset 0 0 0 6px var(--color-cream), inset 0 0 0 8px var(--color-crimson);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
