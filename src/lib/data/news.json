@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "nfc-nurnberg-founded",
+    "title": "NFC Nürnberg is officially founded",
+    "date": "2025-03-15",
+    "summary": "What began as informal kickabouts among friends from the Nepali community is now an official club, with boys' and girls' teams and a brand-new crest.",
+    "body": "After months of playing informally in parks around Nürnberg, a group of friends from the Nepali community has founded NFC Nürnberg. The club launches with both a boys' and a girls' team, regular weekly training, and a crest that brings together the Nepal flag, the Nürnberg skyline, and the game that brought everyone together.",
+    "team": "both"
+  },
+  {
+    "slug": "girls-team-first-training",
+    "title": "Girls' team holds its first official training session",
+    "date": "2025-04-05",
+    "summary": "NFC Nürnberg Girls hit the pitch for the first time, welcoming players of all experience levels.",
+    "body": "The girls' team's first training session drew players from complete beginners to those who had played competitively back home. Head coach Sabina Thapa focused the session on ball control and small-sided games to help everyone get comfortable together.",
+    "team": "girls"
+  },
+  {
+    "slug": "community-tournament-participation",
+    "title": "NFC Nürnberg takes part in a local community tournament",
+    "date": "2025-08-10",
+    "summary": "The boys' team represented the club at a Nürnberg community football tournament, an early milestone in the club's first season.",
+    "body": "Just months after founding, the boys' team laced up for their first community tournament, playing against several other local sides. The result mattered less than the experience — playing together as a club for the first time in front of family and friends.",
+    "team": "boys"
+  }
+]

@@ -1,0 +1,224 @@
+[
+  {
+    "slug": "boys-sujan-rai",
+    "team": "boys",
+    "name": "Sujan Rai",
+    "number": 1,
+    "position": "Goalkeeper",
+    "bio": "Steady between the posts, Sujan has been organising the backline since the club's first training session.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu"
+  },
+  {
+    "slug": "boys-anish-shrestha",
+    "team": "boys",
+    "name": "Anish Shrestha",
+    "number": 4,
+    "position": "Defender",
+    "bio": "A no-nonsense centre-back who reads the game a step ahead of everyone else on the pitch.",
+    "joinedYear": 2025,
+    "hometown": "Pokhara",
+    "isCaptain": true
+  },
+  {
+    "slug": "boys-prabin-tamang",
+    "team": "boys",
+    "name": "Prabin Tamang",
+    "number": 2,
+    "position": "Defender",
+    "bio": "Quick recovery pace and a reliable overlap down the right flank.",
+    "joinedYear": 2025,
+    "hometown": "Nürnberg"
+  },
+  {
+    "slug": "boys-rohan-magar",
+    "team": "boys",
+    "name": "Rohan Magar",
+    "number": 5,
+    "position": "Defender",
+    "bio": "Brings physicality and calm distribution out from the back.",
+    "joinedYear": 2025,
+    "hometown": "Chitwan"
+  },
+  {
+    "slug": "boys-aayush-karki",
+    "team": "boys",
+    "name": "Aayush Karki",
+    "number": 8,
+    "position": "Midfielder",
+    "bio": "The engine room of the team — box-to-box energy for the full ninety minutes.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu"
+  },
+  {
+    "slug": "boys-sagar-lama",
+    "team": "boys",
+    "name": "Sagar Lama",
+    "number": 6,
+    "position": "Midfielder",
+    "bio": "Sets the tempo and rarely gives the ball away in midfield.",
+    "joinedYear": 2025,
+    "hometown": "Nürnberg"
+  },
+  {
+    "slug": "boys-kiran-thapa",
+    "team": "boys",
+    "name": "Kiran Thapa",
+    "number": 10,
+    "position": "Midfielder",
+    "bio": "Creative playmaker with an eye for the killer through-ball.",
+    "joinedYear": 2025,
+    "hometown": "Butwal"
+  },
+  {
+    "slug": "boys-bibek-adhikari",
+    "team": "boys",
+    "name": "Bibek Adhikari",
+    "number": 7,
+    "position": "Forward",
+    "bio": "Direct, quick, and always looking to run in behind the defence.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu"
+  },
+  {
+    "slug": "boys-nabin-basnet",
+    "team": "boys",
+    "name": "Nabin Basnet",
+    "number": 9,
+    "position": "Forward",
+    "bio": "The club's top scorer since founding — clinical in front of goal.",
+    "joinedYear": 2025,
+    "hometown": "Fürth"
+  },
+  {
+    "slug": "boys-suman-chhetri",
+    "team": "boys",
+    "name": "Suman Chhetri",
+    "number": 11,
+    "position": "Forward",
+    "bio": "Pace on the left wing and a growing highlight reel of assists.",
+    "joinedYear": 2025,
+    "hometown": "Erlangen"
+  },
+  {
+    "slug": "boys-rajesh-bhandari",
+    "team": "boys",
+    "name": "Rajesh Bhandari",
+    "number": 3,
+    "position": "Defender",
+    "bio": "Versatile squad player equally comfortable at left-back or in midfield.",
+    "joinedYear": 2025,
+    "hometown": "Dharan"
+  },
+  {
+    "slug": "girls-anjali-shrestha",
+    "team": "girls",
+    "name": "Anjali Shrestha",
+    "number": 1,
+    "position": "Goalkeeper",
+    "bio": "Commanding presence in goal with sharp reflexes and great distribution.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu",
+    "isCaptain": true
+  },
+  {
+    "slug": "girls-pratikshya-rai",
+    "team": "girls",
+    "name": "Pratikshya Rai",
+    "number": 4,
+    "position": "Defender",
+    "bio": "Anchors the back line and rarely loses a duel in the air.",
+    "joinedYear": 2025,
+    "hometown": "Nürnberg"
+  },
+  {
+    "slug": "girls-sunita-tamang",
+    "team": "girls",
+    "name": "Sunita Tamang",
+    "number": 2,
+    "position": "Defender",
+    "bio": "Reliable full-back who loves to join the attack down the flank.",
+    "joinedYear": 2025,
+    "hometown": "Pokhara"
+  },
+  {
+    "slug": "girls-priya-gurung",
+    "team": "girls",
+    "name": "Priya Gurung",
+    "number": 5,
+    "position": "Defender",
+    "bio": "Composed on the ball and a strong communicator at the back.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu"
+  },
+  {
+    "slug": "girls-nisha-karki",
+    "team": "girls",
+    "name": "Nisha Karki",
+    "number": 8,
+    "position": "Midfielder",
+    "bio": "Tireless in midfield, always first to win the ball back.",
+    "joinedYear": 2025,
+    "hometown": "Fürth"
+  },
+  {
+    "slug": "girls-reshma-lama",
+    "team": "girls",
+    "name": "Reshma Lama",
+    "number": 6,
+    "position": "Midfielder",
+    "bio": "The team's metronome, dictating play from deep midfield.",
+    "joinedYear": 2025,
+    "hometown": "Chitwan"
+  },
+  {
+    "slug": "girls-manisha-thapa",
+    "team": "girls",
+    "name": "Manisha Thapa",
+    "number": 10,
+    "position": "Midfielder",
+    "bio": "Technical and creative, the girls' team's chief playmaker.",
+    "joinedYear": 2025,
+    "hometown": "Butwal"
+  },
+  {
+    "slug": "girls-sristi-adhikari",
+    "team": "girls",
+    "name": "Sristi Adhikari",
+    "number": 7,
+    "position": "Forward",
+    "bio": "Explosive pace on the wing and a fearless one-on-one dribbler.",
+    "joinedYear": 2025,
+    "hometown": "Kathmandu"
+  },
+  {
+    "slug": "girls-puja-basnet",
+    "team": "girls",
+    "name": "Puja Basnet",
+    "number": 9,
+    "position": "Forward",
+    "bio": "Sharp movement in the box and the girls' team's leading scorer.",
+    "joinedYear": 2025,
+    "hometown": "Erlangen"
+  },
+  {
+    "slug": "girls-kritika-chhetri",
+    "team": "girls",
+    "name": "Kritika Chhetri",
+    "number": 11,
+    "position": "Forward",
+    "bio": "Newest addition to the squad, already turning heads in training.",
+    "joinedYear": 2026,
+    "hometown": "Dharan"
+  },
+  {
+    "slug": "girls-sharmila-bhandari",
+    "team": "girls",
+    "name": "Sharmila Bhandari",
+    "number": 3,
+    "position": "Defender",
+    "bio": "Dependable squad player who brings energy to every session.",
+    "joinedYear": 2025,
+    "hometown": "Nürnberg"
+  }
+]

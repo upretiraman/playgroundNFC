@@ -1,0 +1,24 @@
+[
+  {
+    "slug": "boys",
+    "name": "NFC Nürnberg Boys",
+    "shortName": "Boys Team",
+    "tagline": "Every session, every match — full heart.",
+    "description": "Our senior men's side is the club's founding team, made up of players from across the Nepali community in Nürnberg and nearby towns. Mixed ages, mixed backgrounds, one badge.",
+    "coachName": "Bikash Gurung",
+    "coachRole": "Head Coach",
+    "foundedYear": 2025,
+    "colors": { "primary": "#5c0712", "secondary": "#faf6f0" }
+  },
+  {
+    "slug": "girls",
+    "name": "NFC Nürnberg Girls",
+    "shortName": "Girls Team",
+    "tagline": "Building the future of Nepali women's football in Nürnberg.",
+    "description": "Our girls' team launched alongside the boys' side in 2025 to give women in the community a regular, welcoming place to train and play — from complete beginners to experienced players.",
+    "coachName": "Sabina Thapa",
+    "coachRole": "Head Coach",
+    "foundedYear": 2025,
+    "colors": { "primary": "#5c0712", "secondary": "#faf6f0" }
+  }
+]
