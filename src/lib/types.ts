@@ -34,24 +34,6 @@ export interface Player {
   isCaptain?: boolean;
 }
 
-export interface TrainingSession {
-  id: string;
-  team: TeamSlug | "both";
-  dayOfWeek:
-    | "Monday"
-    | "Tuesday"
-    | "Wednesday"
-    | "Thursday"
-    | "Friday"
-    | "Saturday"
-    | "Sunday";
-  startTime: string;
-  endTime: string;
-  venue: string;
-  address: string;
-  notes?: string;
-}
-
 export interface NewsItem {
   slug: string;
   title: string;

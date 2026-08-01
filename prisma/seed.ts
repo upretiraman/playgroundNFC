@@ -98,6 +98,68 @@ async function main() {
   });
 
   await db.event.upsert({
+    where: { id: "seed-boys-training-2" },
+    update: {},
+    create: {
+      id: "seed-boys-training-2",
+      type: "TRAINING",
+      team: "boys",
+      date: nextDateForDay("Thursday"),
+      startTime: "19:00",
+      endTime: "20:30",
+      venue: "Sportpark Valznerweiher",
+      address: "Nürnberg, Germany (exact pitch to be confirmed)",
+      createdById: admin.id,
+      attendances: {
+        create: players
+          .filter((p) => p.team === "boys")
+          .map((p) => ({ playerSlug: p.slug, status: "UNKNOWN" })),
+      },
+    },
+  });
+
+  await db.event.upsert({
+    where: { id: "seed-girls-training-2" },
+    update: {},
+    create: {
+      id: "seed-girls-training-2",
+      type: "TRAINING",
+      team: "girls",
+      date: nextDateForDay("Saturday"),
+      startTime: "10:00",
+      endTime: "11:30",
+      venue: "Sportpark Valznerweiher",
+      address: "Nürnberg, Germany (exact pitch to be confirmed)",
+      createdById: admin.id,
+      attendances: {
+        create: players
+          .filter((p) => p.team === "girls")
+          .map((p) => ({ playerSlug: p.slug, status: "UNKNOWN" })),
+      },
+    },
+  });
+
+  await db.event.upsert({
+    where: { id: "seed-both-training" },
+    update: {},
+    create: {
+      id: "seed-both-training",
+      type: "TRAINING",
+      team: "both",
+      date: nextDateForDay("Sunday"),
+      startTime: "11:00",
+      endTime: "13:00",
+      venue: "Sportpark Valznerweiher",
+      address: "Nürnberg, Germany (exact pitch to be confirmed)",
+      notes: "Open scrimmage / match day for both teams, followed by team lunch.",
+      createdById: admin.id,
+      attendances: {
+        create: players.map((p) => ({ playerSlug: p.slug, status: "UNKNOWN" })),
+      },
+    },
+  });
+
+  await db.event.upsert({
     where: { id: "seed-boys-game" },
     update: {},
     create: {

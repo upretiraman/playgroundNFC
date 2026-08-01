@@ -1,7 +1,6 @@
 import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
 import playersJson from "./data/players.json";
-import trainingJson from "./data/training.json";
 import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
@@ -13,7 +12,6 @@ import type {
   Player,
   Team,
   TeamSlug,
-  TrainingSession,
 } from "./types";
 
 /**
@@ -26,7 +24,6 @@ export interface ClubRepository {
   getTeam(slug: TeamSlug): Promise<Team | undefined>;
   getPlayers(team?: TeamSlug): Promise<Player[]>;
   getPlayer(slug: string): Promise<Player | undefined>;
-  getTrainingSessions(team?: TeamSlug): Promise<TrainingSession[]>;
   getNews(team?: TeamSlug): Promise<NewsItem[]>;
   getNewsItem(slug: string): Promise<NewsItem | undefined>;
   getClubRoles(): Promise<ClubRole[]>;
@@ -54,13 +51,6 @@ class JsonClubRepository implements ClubRepository {
 
   async getPlayer(slug: string): Promise<Player | undefined> {
     return (playersJson as Player[]).find((p) => p.slug === slug);
-  }
-
-  async getTrainingSessions(team?: TeamSlug): Promise<TrainingSession[]> {
-    const sessions = trainingJson as TrainingSession[];
-    return team
-      ? sessions.filter((s) => s.team === team || s.team === "both")
-      : sessions;
   }
 
   async getNews(team?: TeamSlug): Promise<NewsItem[]> {

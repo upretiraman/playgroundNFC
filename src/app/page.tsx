@@ -3,12 +3,17 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { repository } from "@/lib/repository";
+import { listUpcomingEvents } from "@/lib/events";
+
+// Reads live schedule data from the database, so this must not be
+// statically frozen at build time.
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [club, teams, training, news, players] = await Promise.all([
     repository.getClubInfo(),
     repository.getTeams(),
-    repository.getTrainingSessions(),
+    listUpcomingEvents({ type: "TRAINING" }),
     repository.getNews(),
     repository.getPlayers(),
   ]);
@@ -112,7 +117,7 @@ export default async function Home() {
                 {training.length}
               </p>
               <p className="mt-1 text-xs uppercase tracking-wide text-cream-dark">
-                Sessions / week
+                Upcoming Sessions
               </p>
             </div>
           </div>
@@ -225,7 +230,11 @@ export default async function Home() {
               >
                 <div>
                   <p className="font-display text-sm uppercase tracking-wide text-gold">
-                    {session.dayOfWeek}
+                    {new Date(session.date).toLocaleDateString("en-GB", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    })}
                   </p>
                   <p className="text-sm text-cream-dark">{session.venue}</p>
                 </div>
