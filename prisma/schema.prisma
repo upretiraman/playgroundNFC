@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// SQLite has no native enum type, so role/type/status fields are plain
+// strings; allowed values are enforced in the TypeScript layer (src/lib/auth-types.ts).
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String // "PLAYER" | "TRAINER" | "ADMIN"
+  team         String? // "boys" | "girls" — scopes TRAINER/PLAYER to a team; null for ADMIN
+  playerSlug   String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdEvents Event[]
+  products      Product[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  type        String // "TRAINING" | "GAME"
+  team        String // "boys" | "girls" | "both"
+  date        DateTime
+  startTime   String
+  endTime     String
+  venue       String
+  address     String
+  opponent    String? // for games
+  plan        String? // training plan / session notes (training only)
+  notes       String?
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attendances Attendance[]
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId    String
+  playerSlug String // references a roster player (src/lib/data/players.json)
+  status     String   @default("UNKNOWN") // "PRESENT" | "ABSENT" | "EXCUSED" | "UNKNOWN"
+  note       String?
+  updatedAt  DateTime @updatedAt
+
+  @@unique([eventId, playerSlug])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String // e.g. "Cap" | "Tote Bag" | "T-Shirt"
+  artVariant  String? // "cap" | "tote" | "tshirt" — CSS illustration fallback when imageUrl is unset
+  imageUrl    String? // path under /public, e.g. "/shop/tshirt.png"
+  price       Float
+  currency    String   @default("EUR")
+  colorway    String
+  description String
+  active      Boolean  @default(true)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

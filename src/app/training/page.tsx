@@ -1,35 +1,28 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
-import { repository } from "@/lib/repository";
-import type { TrainingSession } from "@/lib/types";
+import { listUpcomingEvents } from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Training",
   description:
-    "Weekly training schedule for NFC Nürnberg's boys' and girls' teams, including venue and timing details.",
+    "Upcoming training sessions for NFC Nürnberg's boys' and girls' teams, including venue and timing details.",
 };
 
-const dayOrder = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+// Reads live schedule data from the database, so this must not be
+// statically frozen at build time.
+export const dynamic = "force-dynamic";
 
-function sortByDay(sessions: TrainingSession[]) {
-  return [...sessions].sort(
-    (a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek)
-  );
-}
+type UpcomingEvent = Awaited<ReturnType<typeof listUpcomingEvents>>[number];
 
-function SessionCard({ session }: { session: TrainingSession }) {
+function SessionCard({ session }: { session: UpcomingEvent }) {
   return (
     <div className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm">
       <p className="font-display text-xs uppercase tracking-[0.3em] text-crimson">
-        {session.dayOfWeek}
+        {new Date(session.date).toLocaleDateString("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })}
       </p>
       <p className="mt-2 font-display text-2xl text-charcoal">
         {session.startTime}&ndash;{session.endTime}
@@ -45,16 +38,19 @@ function SessionCard({ session }: { session: TrainingSession }) {
   );
 }
 
-export default async function TrainingPage() {
-  const [boys, girls, both] = await Promise.all([
-    repository.getTrainingSessions("boys"),
-    repository.getTrainingSessions("girls"),
-    repository.getTrainingSessions(),
-  ]);
+function EmptyState() {
+  return (
+    <p className="mt-4 text-sm text-charcoal-soft/70">
+      No sessions currently scheduled &mdash; check back soon.
+    </p>
+  );
+}
 
-  const jointSessions = both.filter((s) => s.team === "both");
-  const boysOnly = sortByDay(boys.filter((s) => s.team === "boys"));
-  const girlsOnly = sortByDay(girls.filter((s) => s.team === "girls"));
+export default async function TrainingPage() {
+  const trainings = await listUpcomingEvents({ type: "TRAINING" });
+  const boysOnly = trainings.filter((e) => e.team === "boys");
+  const girlsOnly = trainings.filter((e) => e.team === "girls");
+  const jointSessions = trainings.filter((e) => e.team === "both");
 
   return (
     <div className="bg-cream py-16 sm:py-20">
@@ -82,6 +78,7 @@ export default async function TrainingPage() {
                 <SessionCard key={session.id} session={session} />
               ))}
             </div>
+            {boysOnly.length === 0 && <EmptyState />}
           </div>
           <div>
             <h2 className="font-display text-2xl text-charcoal">
@@ -92,6 +89,7 @@ export default async function TrainingPage() {
                 <SessionCard key={session.id} session={session} />
               ))}
             </div>
+            {girlsOnly.length === 0 && <EmptyState />}
           </div>
         </div>
 
@@ -101,7 +99,7 @@ export default async function TrainingPage() {
               Joint Sessions
             </h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {sortByDay(jointSessions).map((session) => (
+              {jointSessions.map((session) => (
                 <SessionCard key={session.id} session={session} />
               ))}
             </div>

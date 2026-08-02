@@ -1,19 +1,19 @@
 import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
 import playersJson from "./data/players.json";
-import trainingJson from "./data/training.json";
 import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
+import { db } from "./db";
 import type {
   ClubInfo,
   ClubRole,
   MembershipTier,
   NewsItem,
   Player,
+  Product,
   Team,
   TeamSlug,
-  TrainingSession,
 } from "./types";
 
 /**
@@ -26,11 +26,12 @@ export interface ClubRepository {
   getTeam(slug: TeamSlug): Promise<Team | undefined>;
   getPlayers(team?: TeamSlug): Promise<Player[]>;
   getPlayer(slug: string): Promise<Player | undefined>;
-  getTrainingSessions(team?: TeamSlug): Promise<TrainingSession[]>;
   getNews(team?: TeamSlug): Promise<NewsItem[]>;
   getNewsItem(slug: string): Promise<NewsItem | undefined>;
   getClubRoles(): Promise<ClubRole[]>;
   getMembershipTiers(): Promise<MembershipTier[]>;
+  getProducts(): Promise<Product[]>;
+  getProduct(slug: string): Promise<Product | undefined>;
 }
 
 class JsonClubRepository implements ClubRepository {
@@ -56,13 +57,6 @@ class JsonClubRepository implements ClubRepository {
     return (playersJson as Player[]).find((p) => p.slug === slug);
   }
 
-  async getTrainingSessions(team?: TeamSlug): Promise<TrainingSession[]> {
-    const sessions = trainingJson as TrainingSession[];
-    return team
-      ? sessions.filter((s) => s.team === team || s.team === "both")
-      : sessions;
-  }
-
   async getNews(team?: TeamSlug): Promise<NewsItem[]> {
     const news = [...(newsJson as NewsItem[])].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -80,6 +74,19 @@ class JsonClubRepository implements ClubRepository {
 
   async getMembershipTiers(): Promise<MembershipTier[]> {
     return membershipTiersJson as MembershipTier[];
+  }
+
+  async getProducts(): Promise<Product[]> {
+    const products = await db.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return products as Product[];
+  }
+
+  async getProduct(slug: string): Promise<Product | undefined> {
+    const product = await db.product.findUnique({ where: { slug } });
+    return (product as Product) ?? undefined;
   }
 }
 

@@ -34,24 +34,6 @@ export interface Player {
   isCaptain?: boolean;
 }
 
-export interface TrainingSession {
-  id: string;
-  team: TeamSlug | "both";
-  dayOfWeek:
-    | "Monday"
-    | "Tuesday"
-    | "Wednesday"
-    | "Thursday"
-    | "Friday"
-    | "Saturday"
-    | "Sunday";
-  startTime: string;
-  endTime: string;
-  venue: string;
-  address: string;
-  notes?: string;
-}
-
 export interface NewsItem {
   slug: string;
   title: string;
@@ -91,5 +73,22 @@ export interface MembershipTier {
   description: string;
   friendlies: string;
   tournaments: string;
+}
+
+export type ProductCategory = "Cap" | "Tote Bag" | "T-Shirt";
+export type ProductArtVariant = "cap" | "tote" | "tshirt";
+
+export interface Product {
+  id: string;
+  slug: string;
+  name: string;
+  category: ProductCategory;
+  artVariant: ProductArtVariant | null;
+  imageUrl: string | null;
+  price: number;
+  currency: string;
+  colorway: string;
+  description: string;
+  active: boolean;
 }
 
