@@ -5,12 +5,14 @@ import trainingJson from "./data/training.json";
 import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
+import shopJson from "./data/shop.json";
 import type {
   ClubInfo,
   ClubRole,
   MembershipTier,
   NewsItem,
   Player,
+  Product,
   Team,
   TeamSlug,
   TrainingSession,
@@ -31,6 +33,7 @@ export interface ClubRepository {
   getNewsItem(slug: string): Promise<NewsItem | undefined>;
   getClubRoles(): Promise<ClubRole[]>;
   getMembershipTiers(): Promise<MembershipTier[]>;
+  getProducts(): Promise<Product[]>;
 }
 
 class JsonClubRepository implements ClubRepository {
@@ -80,6 +83,10 @@ class JsonClubRepository implements ClubRepository {
 
   async getMembershipTiers(): Promise<MembershipTier[]> {
     return membershipTiersJson as MembershipTier[];
+  }
+
+  async getProducts(): Promise<Product[]> {
+    return shopJson as Product[];
   }
 }
 

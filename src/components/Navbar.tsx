@@ -10,6 +10,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/club", label: "Club" },
   { href: "/teams", label: "Teams" },
+  { href: "/shop", label: "Shop" },
   { href: "/training", label: "Training" },
   { href: "/news", label: "News" },
   { href: "/contact", label: "Contact" },

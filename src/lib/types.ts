@@ -93,3 +93,16 @@ export interface MembershipTier {
   tournaments: string;
 }
 
+export type ProductCategory = "Cap" | "Tote Bag";
+
+export interface Product {
+  slug: string;
+  name: string;
+  category: ProductCategory;
+  artVariant: "cap" | "tote";
+  price: number;
+  currency: string;
+  colorway: string;
+  description: string;
+}
+
