@@ -6,6 +6,140 @@ Built with Next.js (App Router, TypeScript, Tailwind CSS v4). Club/team/player c
 
 The site also has a member area (`/login`, `/dashboard/**`) with role-based access — Guest (public, no login), Player, Trainer, and Administrator — backed by Prisma + SQLite and NextAuth (Auth.js). Trainers/Admins schedule trainings and games, set training plans, and mark attendance; Players see their team's schedule and their own attendance.
 
+> All player names, coach names, the training venue, and contact details currently shown are placeholder content pending real club details — see `CLAUDE.md` for what's fake vs. what's structural.
+
+## Contents
+
+- [Site guide](#site-guide) — what each page does, with screenshots
+  - [Public site](#public-site)
+  - [Member area](#member-area-login-required)
+- [Development](#development)
+
+## Site guide
+
+### Public site
+
+Anyone can browse these pages without an account.
+
+#### Home (`/`)
+
+![Home page](docs/screenshots/home.png)
+
+The landing page: hero with the club crest and motto ("More Than a Club"),
+a mission statement with live club stats, cards for the Boys and Girls
+teams, the current team captains, a teaser of the next few upcoming
+training sessions, and the latest news. The stats and training teaser read
+live data — anything a Trainer schedules shows up here automatically.
+
+#### Club (`/club`)
+
+![Club page](docs/screenshots/club.png)
+
+The club's mission and values, a membership tiers table (Active /
+Supporting / Guest-Trial, and what each is eligible for), and the full
+committee/role breakdown (Chair, Head Coach, Team Captain, Treasurer, etc.)
+sourced from the club's governance protocol — with a link to download the
+full protocol PDF.
+
+#### Teams (`/teams`)
+
+![Teams overview](docs/screenshots/teams.png)
+
+Overview of both squads with their coach and a short description, linking
+through to each team's full roster.
+
+#### Team roster (`/teams/boys`, `/teams/girls`)
+
+![Boys team roster](docs/screenshots/teams-boys-roster.png)
+
+The full player roster for one team — squad number, position, and a
+generated initials avatar for each player (captain highlighted in gold).
+Clicking a player opens their profile.
+
+#### Player profile (`/teams/boys/[player]`)
+
+![Player profile](docs/screenshots/player-profile.png)
+
+An individual player's number, position, hometown, and a short bio.
+
+#### Training (`/training`)
+
+![Training schedule](docs/screenshots/training.png)
+
+Upcoming training sessions, grouped by Boys Team / Girls Team / Joint
+Sessions, each showing date, time, venue, and any notes. This reads live
+from the same database Trainers schedule into via the member area — no
+rebuild needed when a new session is added.
+
+#### News (`/news`) and article (`/news/[slug]`)
+
+![News list](docs/screenshots/news.png)
+![News article](docs/screenshots/news-article.png)
+
+Club announcements and milestones — separate from the training/game
+schedule, hand-written per article.
+
+#### Contact (`/contact`)
+
+![Contact page](docs/screenshots/contact.png)
+
+Email, WhatsApp, and Instagram links, the current training venue, and a
+message form that opens the visitor's email client with the message
+pre-filled (no backend email sending — it's transparent about that).
+
+#### Sign in (`/login`)
+
+![Login page](docs/screenshots/login.png)
+
+Entry point to the member area. There's no public sign-up — Player and
+Trainer accounts are created by an Administrator.
+
+### Member area (login required)
+
+Everything under `/dashboard/**` is role-gated: what you can see and do
+depends on whether you're a **Player**, **Trainer**, or **Administrator**.
+
+#### Dashboard (`/dashboard`)
+
+![Administrator dashboard](docs/screenshots/dashboard-admin.png)
+
+Role-aware landing page. A Player sees a link to their schedule; a Trainer
+additionally sees "Schedule New Session"; an Administrator (shown above)
+also sees "Manage Accounts".
+
+#### Schedule (`/dashboard/schedule`)
+
+![Schedule list](docs/screenshots/dashboard-schedule.png)
+
+List of upcoming trainings and games. Players see only their own team's
+sessions, read-only. Trainers and Admins get a "New Session" button here.
+
+#### Session detail (`/dashboard/schedule/[id]`)
+
+![Session detail with training plan and attendance](docs/screenshots/dashboard-schedule-detail.png)
+
+The core of the Trainer workflow: a free-text **training plan** for the
+session, and an **attendance** grid — one row per roster player, each with
+a status (Present / Absent / Excused / Unmarked) and an optional note,
+saved independently per row. Trainers/Admins can edit both; Players see the
+same page read-only, with their own row highlighted.
+
+#### New session (`/dashboard/schedule/new`)
+
+![New session form](docs/screenshots/dashboard-schedule-new.png)
+
+Trainer/Admin only. Schedule a Training or a Game — date, time, venue,
+opponent (for games), and an optional plan. A Trainer's team is locked to
+their own; an Administrator can schedule for either team or club-wide.
+
+#### Manage accounts (`/dashboard/users`)
+
+![Manage accounts](docs/screenshots/dashboard-users.png)
+
+Administrator only. Create Player, Trainer, or Administrator accounts,
+optionally linking a Player account to an existing roster profile so they
+see their own name highlighted in attendance.
+
 ## Development
 
 ```bash
@@ -17,3 +151,5 @@ npm run dev
 ```
 
 Log in with the printed Administrator credentials at `/login`, then create Player/Trainer accounts from `/dashboard/users`.
+
+See `CLAUDE.md` for architecture notes, the auth/role model, and gotchas already hit while building this.
