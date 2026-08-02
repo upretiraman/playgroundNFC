@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Container from "@/components/Container";
 import ContactForm from "@/components/ContactForm";
 import { repository } from "@/lib/repository";
+import { listUpcomingEvents } from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,9 +10,16 @@ export const metadata: Metadata = {
     "Get in touch with NFC Nürnberg — join a training session, ask a question, or connect on Instagram and WhatsApp.",
 };
 
+const FALLBACK_VENUE = "Sportpark Valznerweiher";
+const FALLBACK_ADDRESS = "Nürnberg, Germany (exact pitch to be confirmed)";
+
+// Reads live schedule data from the database, so this must not be
+// statically frozen at build time.
+export const dynamic = "force-dynamic";
+
 export default async function ContactPage() {
   const club = await repository.getClubInfo();
-  const training = await repository.getTrainingSessions();
+  const training = await listUpcomingEvents({ type: "TRAINING", limit: 1 });
 
   return (
     <div className="bg-cream py-16 sm:py-20">
@@ -75,9 +83,9 @@ export default async function ContactPage() {
               Training Locations
             </h2>
             <p className="mt-2 text-sm text-cream-dark">
-              {training[0]?.venue}
+              {training[0]?.venue ?? FALLBACK_VENUE}
               <br />
-              {training[0]?.address}
+              {training[0]?.address ?? FALLBACK_ADDRESS}
             </p>
           </div>
         </div>

@@ -8,7 +8,7 @@
     "coachName": "Bikash Gurung",
     "coachRole": "Head Coach",
     "foundedYear": 2025,
-    "colors": { "primary": "#5c0712", "secondary": "#faf6f0" }
+    "colors": { "primary": "#5f0713", "secondary": "#faf6f0" }
   },
   {
     "slug": "girls",
@@ -19,6 +19,6 @@
     "coachName": "Sabina Thapa",
     "coachRole": "Head Coach",
     "foundedYear": 2025,
-    "colors": { "primary": "#5c0712", "secondary": "#faf6f0" }
+    "colors": { "primary": "#5f0713", "secondary": "#faf6f0" }
   }
 ]
