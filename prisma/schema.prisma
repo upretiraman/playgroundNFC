@@ -25,6 +25,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   createdEvents Event[]
+  products      Product[]
 }
 
 model Event {
@@ -57,4 +58,22 @@ model Attendance {
   updatedAt  DateTime @updatedAt
 
   @@unique([eventId, playerSlug])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    String // e.g. "Cap" | "Tote Bag" | "T-Shirt"
+  artVariant  String? // "cap" | "tote" | "tshirt" — CSS illustration fallback when imageUrl is unset
+  imageUrl    String? // path under /public, e.g. "/shop/tshirt.png"
+  price       Float
+  currency    String   @default("EUR")
+  colorway    String
+  description String
+  active      Boolean  @default(true)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

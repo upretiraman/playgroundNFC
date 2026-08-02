@@ -75,16 +75,20 @@ export interface MembershipTier {
   tournaments: string;
 }
 
-export type ProductCategory = "Cap" | "Tote Bag";
+export type ProductCategory = "Cap" | "Tote Bag" | "T-Shirt";
+export type ProductArtVariant = "cap" | "tote" | "tshirt";
 
 export interface Product {
+  id: string;
   slug: string;
   name: string;
   category: ProductCategory;
-  artVariant: "cap" | "tote";
+  artVariant: ProductArtVariant | null;
+  imageUrl: string | null;
   price: number;
   currency: string;
   colorway: string;
   description: string;
+  active: boolean;
 }
 

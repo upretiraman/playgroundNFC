@@ -29,10 +29,33 @@ function ToteArt() {
   );
 }
 
-export default function ProductArt({ variant }: { variant: "cap" | "tote" }) {
+function TshirtArt() {
+  return (
+    <div className="relative flex h-36 w-36 items-center justify-center sm:h-44 sm:w-44">
+      <div className="relative flex h-28 w-32 flex-col items-center rounded-b-xl rounded-t-md bg-cream ring-2 ring-charcoal-soft sm:h-32 sm:w-36">
+        <div className="absolute -left-4 top-1 h-8 w-6 -rotate-12 rounded-md bg-cream ring-2 ring-charcoal-soft sm:-left-5 sm:h-9" />
+        <div className="absolute -right-4 top-1 h-8 w-6 rotate-12 rounded-md bg-cream ring-2 ring-charcoal-soft sm:-right-5 sm:h-9" />
+        <div className="mt-3 h-6 w-10 rounded-b-full ring-2 ring-charcoal-soft sm:mt-4" />
+        <div className="mt-3 flex h-9 w-9 items-center justify-center rounded-full bg-crimson sm:h-10 sm:w-10">
+          <span className="font-display text-[9px] tracking-wide text-cream">
+            NFC
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ProductArt({
+  variant,
+}: {
+  variant: "cap" | "tote" | "tshirt" | null;
+}) {
   return (
     <div className="flex aspect-square items-center justify-center bg-cream-dark">
-      {variant === "cap" ? <CapArt /> : <ToteArt />}
+      {variant === "cap" && <CapArt />}
+      {variant === "tote" && <ToteArt />}
+      {(variant === "tshirt" || variant === null) && <TshirtArt />}
     </div>
   );
 }

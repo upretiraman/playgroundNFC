@@ -177,6 +177,59 @@ async function main() {
     },
   });
 
+  const products: Array<{
+    slug: string;
+    name: string;
+    category: string;
+    artVariant: string;
+    imageUrl: string | null;
+    price: number;
+    colorway: string;
+    description: string;
+  }> = [
+    {
+      slug: "club-cap",
+      name: "NFC Nürnberg Cap",
+      category: "Cap",
+      artVariant: "cap",
+      imageUrl: null,
+      price: 18,
+      colorway: "Crimson / Charcoal",
+      description:
+        "Structured six-panel cap in club crimson with a charcoal brim and an embroidered crest on the front panel.",
+    },
+    {
+      slug: "club-tote-bag",
+      name: "NFC Nürnberg Tote Bag",
+      category: "Tote Bag",
+      artVariant: "tote",
+      imageUrl: null,
+      price: 14,
+      colorway: "Cream / Crimson",
+      description:
+        "Heavyweight cotton tote in cream with the club crest printed in crimson. Room for boots, a ball, and match-day snacks.",
+    },
+    {
+      slug: "club-tshirt",
+      name: "NFC Nürnberg T-Shirt",
+      category: "T-Shirt",
+      artVariant: "tshirt",
+      imageUrl: null,
+      price: 20,
+      colorway: "White / Crimson",
+      description:
+        "White cotton tee with the club crest on the chest and \"More Than a Club\" printed across the back.",
+    },
+  ];
+
+  for (const product of products) {
+    await db.product.upsert({
+      where: { slug: product.slug },
+      update: {},
+      create: { ...product, createdById: admin.id },
+    });
+  }
+
   console.log("Seed complete.");
   console.log(`Boys training seeded: ${boysTraining.id}`);
   console.log(`Girls training seeded: ${girlsTraining.id}`);

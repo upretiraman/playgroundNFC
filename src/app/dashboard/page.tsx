@@ -69,6 +69,20 @@ export default async function DashboardPage() {
               </p>
             </Link>
           )}
+
+          {user.role === "ADMIN" && (
+            <Link
+              href="/dashboard/shop"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Manage Shop
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Add, edit, and remove merchandise on the club shop.
+              </p>
+            </Link>
+          )}
         </div>
       </Container>
     </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/Container";
 import ProductArt from "@/components/ProductArt";
@@ -36,7 +37,18 @@ export default async function ShopPage() {
               key={product.slug}
               className="flex flex-col overflow-hidden rounded-xl bg-white/60 shadow-sm"
             >
-              <ProductArt variant={product.artVariant} />
+              {product.imageUrl ? (
+                <div className="relative aspect-square bg-cream-dark">
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <ProductArt variant={product.artVariant} />
+              )}
               <div className="flex flex-1 flex-col p-6">
                 <p className="font-display text-xs uppercase tracking-[0.3em] text-crimson">
                   {product.category}

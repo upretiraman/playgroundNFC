@@ -4,7 +4,7 @@ import playersJson from "./data/players.json";
 import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
-import shopJson from "./data/shop.json";
+import { db } from "./db";
 import type {
   ClubInfo,
   ClubRole,
@@ -31,6 +31,7 @@ export interface ClubRepository {
   getClubRoles(): Promise<ClubRole[]>;
   getMembershipTiers(): Promise<MembershipTier[]>;
   getProducts(): Promise<Product[]>;
+  getProduct(slug: string): Promise<Product | undefined>;
 }
 
 class JsonClubRepository implements ClubRepository {
@@ -76,7 +77,16 @@ class JsonClubRepository implements ClubRepository {
   }
 
   async getProducts(): Promise<Product[]> {
-    return shopJson as Product[];
+    const products = await db.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return products as Product[];
+  }
+
+  async getProduct(slug: string): Promise<Product | undefined> {
+    const product = await db.product.findUnique({ where: { slug } });
+    return (product as Product) ?? undefined;
   }
 }
 
