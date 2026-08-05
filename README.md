@@ -4,7 +4,7 @@ Website for NFC Nürnberg, a hobby football club for the Nepali community in Nü
 
 Built with Next.js (App Router, TypeScript, Tailwind CSS v4). Club/team/player content lives in `src/lib/data/*.json` behind a repository interface (`src/lib/repository.ts`), so it can be swapped for a real database/admin later without touching page code.
 
-The site also has a member area (`/login`, `/dashboard/**`) with role-based access — Guest (public, no login), Player, Trainer, and Administrator — backed by Prisma + SQLite and NextAuth (Auth.js). Trainers/Admins schedule trainings and games, set training plans, and mark attendance; Players see their team's schedule and their own attendance.
+The site also has a member area (`/login`, `/dashboard/**`) with role-based access — Guest (public, no login), Player, Trainer, and Administrator — backed by Prisma + SQLite and NextAuth (Auth.js). Trainers/Admins schedule trainings and games, set training plans, and mark attendance; Players see their team's schedule and their own attendance. Administrators also maintain the club shop, whose products live in the database rather than in JSON so merchandise can be added or hidden without a rebuild.
 
 > All player names, coach names, the training venue, and contact details currently shown are placeholder content pending real club details — see `CLAUDE.md` for what's fake vs. what's structural.
 
@@ -62,6 +62,18 @@ Clicking a player opens their profile.
 
 An individual player's number, position, hometown, and a short bio.
 
+#### Shop (`/shop`)
+
+![Club shop](docs/screenshots/shop.png)
+
+Official club merchandise — caps, tote bags, and T-shirts — each card
+showing its category, description, colourway, and price in euros. Products
+read live from the database, so anything an Administrator adds or hides in
+the member area shows up here without a rebuild. Items with no photo fall
+back to a generated crest illustration (`ProductArt.tsx`) in the club
+palette. There's no online checkout: the "Order" button sends visitors to
+`/contact`, and the page says so plainly.
+
 #### Training (`/training`)
 
 ![Training schedule](docs/screenshots/training.png)
@@ -105,7 +117,7 @@ depends on whether you're a **Player**, **Trainer**, or **Administrator**.
 
 Role-aware landing page. A Player sees a link to their schedule; a Trainer
 additionally sees "Schedule New Session"; an Administrator (shown above)
-also sees "Manage Accounts".
+also sees "Manage Accounts" and "Manage Shop".
 
 #### Schedule (`/dashboard/schedule`)
 
@@ -139,6 +151,25 @@ their own; an Administrator can schedule for either team or club-wide.
 Administrator only. Create Player, Trainer, or Administrator accounts,
 optionally linking a Player account to an existing roster profile so they
 see their own name highlighted in attendance.
+
+#### Manage shop (`/dashboard/shop`)
+
+![Manage shop](docs/screenshots/dashboard-shop.png)
+
+Administrator only — Players and Trainers are redirected back to
+`/dashboard`. Lists every product with its category, price, and whether
+it's visible on the public shop, with Edit and Delete per row.
+
+#### Add / edit product (`/dashboard/shop/new`, `/dashboard/shop/[id]`)
+
+![Add product form](docs/screenshots/dashboard-shop-new.png)
+
+Administrator only. Name, URL slug (auto-generated from the name if left
+blank), category, price and currency, colourway, and description. A product
+can either point at a real photo under `public/` via its image URL or use
+one of the built-in fallback illustrations (cap / tote / T-shirt).
+Unchecking "Visible on the public shop page" keeps the product in the
+database but hides it from `/shop`.
 
 ## Development
 
