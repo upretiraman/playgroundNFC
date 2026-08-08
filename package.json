@@ -14,7 +14,8 @@
     "test:smoke": "tsx scripts/smoke-test.ts"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
+    "@libsql/client": "^0.15.15",
+    "@prisma/adapter-libsql": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
     "next": "16.2.12",
