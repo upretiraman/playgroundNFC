@@ -69,9 +69,12 @@ created by `prisma/seed.ts`; everyone else is created from
 `/dashboard/users` by an Admin.
 
 **The list above is as-built. The club's agreed target model is
-`docs/roles-and-permissions.md`** — read it before changing anything about
-roles, and treat it as the intent when the two disagree. It is a spec, not
-yet implemented; it ends with a current-vs-target gap table. Headline
+`docs/roles-and-permissions.md`** (index + permission matrix + shared rules,
+with one file per role under `docs/roles/`: `guest.md`, `player.md`,
+`trainer.md`, `admin.md`, `super-admin.md`) — read it before changing
+anything about roles, and treat it as the intent when the two disagree. It is
+a spec, not yet implemented; every page ends with a current-vs-target gap
+table, and the index carries a suggested build order. Headline
 differences: Trainers become club-wide (no `team` scoping), Players see the
 whole club schedule, account management grows edit/reset/soft-disable, a
 super-admin flag gates Admin-on-Admin management and the audit log, and public
