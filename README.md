@@ -183,4 +183,16 @@ npm run dev
 
 Log in with the printed Administrator credentials at `/login`, then create Player/Trainer accounts from `/dashboard/users`.
 
+### Useful scripts
+
+| Command               | What it does                                                        |
+| ---------------------- | -------------------------------------------------------------------- |
+| `npm run build`        | Production build — run this and `npm run lint` before considering a change done |
+| `npm run lint`         | ESLint                                                                |
+| `npm run test:smoke`   | Playwright smoke test (`scripts/smoke-test.ts`) against an already-running dev server — exercises guest/Admin/Trainer/Player flows end to end, creating and cleaning up its own throwaway data |
+| `npm run db:migrate`   | Apply Prisma migrations (`prisma migrate dev`)                       |
+| `npm run db:seed`      | Re-run the seed script (`prisma db seed`)                            |
+| `npm run db:reset`     | Drop, recreate, and reseed the local database — **destructive**, local dev only |
+| `npm run db:studio`    | Open Prisma Studio, a visual DB browser                              |
+
 See `CLAUDE.md` for architecture notes, the auth/role model, and gotchas already hit while building this.
