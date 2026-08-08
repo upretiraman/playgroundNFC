@@ -68,6 +68,15 @@ There is no self-registration and no password reset flow. Admin accounts are
 created by `prisma/seed.ts`; everyone else is created from
 `/dashboard/users` by an Admin.
 
+**The list above is as-built. The club's agreed target model is
+`docs/roles-and-permissions.md`** — read it before changing anything about
+roles, and treat it as the intent when the two disagree. It is a spec, not
+yet implemented; it ends with a current-vs-target gap table. Headline
+differences: Trainers become club-wide (no `team` scoping), Players see the
+whole club schedule, account management grows edit/reset/soft-disable, a
+super-admin flag gates Admin-on-Admin management and the audit log, and public
+content moves out of JSON into the database.
+
 ## Known gotchas (hit these already — don't rediscover them)
 
 - **Next.js 16 renamed the `middleware` file convention to `proxy`.** Route
