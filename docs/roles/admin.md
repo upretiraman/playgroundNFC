@@ -44,8 +44,15 @@ This is what moves the site off dev-edited JSON files; see
 ## Records
 
 - **Attendance reports** across the club — per-player and per-team summaries.
-- **Membership/fee contribution records** for all members: who has paid, when,
-  and what is outstanding.
+- **Membership/fee contribution records** for all members, entered manually
+  — amount, date, and period/tier per contribution. Outstanding is computed
+  automatically from the tier's fee, not entered by hand. Sees an itemized
+  view per member, the same shape a member sees for themselves.
+
+## Multi-role
+
+An Admin account can also hold Trainer and/or Player roles — see
+[Multi-role accounts](../roles-and-permissions.md#multi-role-accounts).
 
 ## Cannot
 
@@ -54,7 +61,9 @@ This is what moves the site off dev-edited JSON files; see
   role.
 - Grant or revoke the **super-admin flag**.
 - View the **audit log** — restricted to super-admins so that ordinary Admin
-  actions remain reviewable by a smaller circle.
+  actions remain reviewable by a smaller circle. Every action in this
+  document (accounts, events, content, fee records) is still written to that
+  log — this Admin simply can't read it back.
 - Hard-delete anything. Removal is always a soft disable.
 
 ## Account lifecycle
@@ -78,8 +87,9 @@ This is what moves the site off dev-edited JSON files; see
 | Club-wide events | Admin-only | Unchanged |
 | Public content | JSON files, dev-edited | Full CMS from the dashboard |
 | Attendance reports | Do not exist | Can view |
-| Fee records | Do not exist | Sees all |
-| Audit log | Does not exist | **No access** — super-admin only |
+| Fee records | Do not exist | Sees all, itemized; manual entry, outstanding auto-computed |
+| Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
+| Roles | Single role only | Can combine with Trainer/Player |
 
 Losing the ability to create fellow Admins is a **reduction** in what the role
 can do today. Implementing it needs the super-admin flag to exist first, or the

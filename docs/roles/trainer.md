@@ -40,7 +40,20 @@ permission check consults it.
 
 This is a deliberate widening of the current model, in which a Trainer is
 locked to boys or girls. The trade-off accepted: an absent Trainer's sessions
-can be picked up by any colleague without an Admin reassigning anything.
+can be picked up by any colleague without an Admin reassigning anything. It
+also means two Trainers can edit or cancel the same event: this is
+**silent last-write-wins**, with no conflict warning, edit history, or
+notification to the Trainer who made the earlier change — the same trade-off
+as above, just applied to concurrent edits instead of absence.
+
+## Multi-role
+
+A Trainer account can also hold Player and/or Admin roles — see
+[Multi-role accounts](../roles-and-permissions.md#multi-role-accounts).
+Trainer+Admin is permitted but largely redundant, since Admin already
+includes full event override. Trainer+Player (a playing coach) keeps their
+own roster entry and personal attendance view in addition to full club-wide
+Trainer powers.
 
 ## Relationship to Admin
 
@@ -71,6 +84,7 @@ outside the schedule and attendance.
 | Attendance marking | Own team | Any team |
 | Attendance reports | Do not exist | Can view |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
+| Roles | Single role only | Can combine with Player/Admin |
 
 Removing team scoping touches `canManageTeam`, `canManageEventTeam`, the
 account creation form and action, and the `NewEventForm` "locked team" pattern

@@ -16,9 +16,12 @@ below.
 - **Grant the super-admin flag** to another Admin. Multiple super-admins may
   exist at once, deliberately: the club should never be one lost account away
   from an unmanageable site.
-- **View the audit log** of admin actions — who created, edited, or disabled
-  which account or event, and when. Restricting this to super-admins keeps
-  ordinary Admins accountable to a smaller circle rather than to no one.
+- **View the audit log** of admin actions — covering every mutation an Admin
+  or super-admin can make: accounts, events, content, and fee records,
+  including super-admins' own actions. Each entry is a simple
+  who/action/target/when record (no before/after diff), retained
+  indefinitely. Restricting read access to super-admins keeps ordinary
+  Admins accountable to a smaller circle rather than to no one.
 
 ## Where the flag comes from
 
@@ -30,6 +33,11 @@ it.
 Granting **copies** the flag rather than moving it; the granting super-admin
 keeps their own. Revoking is possible, and a super-admin may demote another
 super-admin to ordinary Admin.
+
+This is unrelated to
+[multi-role accounts](../roles-and-permissions.md#multi-role-accounts): an
+account's `role` set (Player/Trainer/Admin) and the `isSuperAdmin` flag are
+independent concepts, but the flag still requires Admin present in that set.
 
 ## Why a flag and not a fourth role
 
@@ -46,9 +54,10 @@ three exclusive powers are enforced.
   email-based recovery and no self-service escalation.
 - If every super-admin account is lost, recovery means a developer setting the
   flag directly in the database.
-- Whether a super-admin may disable *themselves* or the last remaining
-  super-admin is **undecided** — the safe implementation refuses to remove the
-  final flag, and that is what should be built unless the club says otherwise.
+- A super-admin may **not** disable or demote themselves, nor disable or
+  demote the last remaining super-admin, if doing so would leave zero
+  super-admins. This applies whether it's self-demotion or removing the last
+  other one — the flag can never hit zero holders through normal use.
 
 ## Current vs. target
 
@@ -62,6 +71,9 @@ Implementation needs, at minimum:
 3. A permission helper alongside `canManageTeam` in `src/lib/auth-helpers.ts`,
    enforced in the server action — not only on the page.
 4. The Admin-management and audit-log UI gated behind it.
+5. An audit log model (actor, action, target, timestamp) written on every
+   Admin/super-admin mutation across accounts, events, content, and fee
+   records.
 
 This is the **first thing to build** out of the whole specification: the
 [Admin](admin.md) role loses the ability to create fellow Admins, so without
