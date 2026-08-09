@@ -4,7 +4,7 @@ Website for NFC Nürnberg, a hobby football club for the Nepali community in Nü
 
 Built with Next.js (App Router, TypeScript, Tailwind CSS v4). Club/team/player content lives in `src/lib/data/*.json` behind a repository interface (`src/lib/repository.ts`), so it can be swapped for a real database/admin later without touching page code.
 
-The site also has a member area (`/login`, `/dashboard/**`) with role-based access — Guest (public, no login), Player, Trainer, and Administrator — backed by Prisma + SQLite and NextAuth (Auth.js). Trainers/Admins schedule trainings and games, set training plans, and mark attendance; Players see their team's schedule and their own attendance. Administrators also maintain the club shop, whose products live in the database rather than in JSON so merchandise can be added or hidden without a rebuild.
+The site also has a member area (`/login`, `/dashboard/**`) with role-based access — Guest (public, no login), Player, Trainer, and Administrator — backed by Prisma + Turso (libSQL) and NextAuth (Auth.js). Trainers/Admins schedule trainings and games, set training plans, and mark attendance; Players see their team's schedule and their own attendance. Administrators also maintain the club shop, whose products live in the database rather than in JSON so merchandise can be added or hidden without a rebuild.
 
 > All player names, coach names, the training venue, and contact details currently shown are placeholder content pending real club details — see `CLAUDE.md` for what's fake vs. what's structural.
 
@@ -176,23 +176,27 @@ database but hides it from `/shop`.
 ```bash
 npm install
 cp .env.example .env        # then edit AUTH_SECRET if needed
-npx prisma migrate dev      # creates the local SQLite database
+npx prisma migrate dev      # creates a local libSQL database file (dev.db) — no Turso account needed
 npx prisma db seed          # creates a bootstrap Administrator account (prints its password once)
 npm run dev
 ```
 
 Log in with the printed Administrator credentials at `/login`, then create Player/Trainer accounts from `/dashboard/users`.
 
-### Useful scripts
+The database is [Turso](https://turso.tech) (libSQL, SQLite-compatible) in
+production, so that writes (accounts, events, attendance) survive on
+Vercel's serverless/ephemeral filesystem. Locally, the default
+`DATABASE_URL="file:./dev.db"` in `.env.example` needs no Turso account and
+behaves like plain SQLite. To run against a real Turso database instead
+(e.g. a shared dev database, or reproducing a production-only issue):
 
-| Command               | What it does                                                        |
-| ---------------------- | -------------------------------------------------------------------- |
-| `npm run build`        | Production build — run this and `npm run lint` before considering a change done |
-| `npm run lint`         | ESLint                                                                |
-| `npm run test:smoke`   | Playwright smoke test (`scripts/smoke-test.ts`) against an already-running dev server — exercises guest/Admin/Trainer/Player flows end to end, creating and cleaning up its own throwaway data |
-| `npm run db:migrate`   | Apply Prisma migrations (`prisma migrate dev`)                       |
-| `npm run db:seed`      | Re-run the seed script (`prisma db seed`)                            |
-| `npm run db:reset`     | Drop, recreate, and reseed the local database — **destructive**, local dev only |
-| `npm run db:studio`    | Open Prisma Studio, a visual DB browser                              |
+```bash
+turso db create nfc-nurnberg-dev             # one-time, needs the Turso CLI + account
+turso db show nfc-nurnberg-dev --url         # -> DATABASE_URL
+turso db tokens create nfc-nurnberg-dev      # -> TURSO_AUTH_TOKEN
+```
+
+Set both in `.env`, then re-run `npx prisma migrate deploy` and
+`npx prisma db seed` against that database.
 
 See `CLAUDE.md` for architecture notes, the auth/role model, and gotchas already hit while building this.

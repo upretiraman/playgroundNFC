@@ -2,7 +2,7 @@
 
 Website for NFC Nürnberg, a hobby football club for the Nepali community in
 Nürnberg, Germany. Next.js (App Router, TypeScript), Tailwind CSS v4, Prisma +
-SQLite, NextAuth (Auth.js) v5.
+libSQL/Turso, NextAuth (Auth.js) v5.
 
 ## Non-negotiables — read before editing
 
@@ -34,7 +34,7 @@ Two data layers, deliberately separate:
    `ClubRepository` interface) — club info, teams, players, news, membership
    tiers, committee roles. Content editors change JSON; if this ever needs a
    real CMS/DB, only `repository.ts`'s implementation changes, not callers.
-2. **Dynamic data** (Prisma + SQLite, `src/lib/db.ts` / `src/lib/events.ts`) —
+2. **Dynamic data** (Prisma + libSQL/Turso, `src/lib/db.ts` / `src/lib/events.ts`) —
    user accounts, training/game events, attendance. This is what the member
    area (`/login`, `/dashboard/**`) reads and writes, and what the public
    `/`, `/training`, and `/contact` pages read (via `listUpcomingEvents`) so
@@ -86,18 +86,27 @@ content moves out of JSON into the database.
   protection lives in `src/proxy.ts`, not `middleware.ts`. Using the old name
   fails silently/confusingly (stale build cache can make it *look* like it's
   working right up until you clear `.next`).
-- **Prisma 7 requires a driver adapter** — `@prisma/adapter-better-sqlite3` +
-  `better-sqlite3`, wired up in `src/lib/db.ts`. The generator is
+- **Prisma 7 requires a driver adapter** — `@prisma/adapter-libsql` +
+  `@libsql/client`, wired up in `src/lib/db.ts`. The generator is
   `prisma-client` (not the old `prisma-client-js`), output to
   `src/generated/prisma` (gitignored, regenerate with `npx prisma generate`
   after any schema change). SQLite has no native enum type — `role`,
   `type`, `status` fields in `prisma/schema.prisma` are plain strings with
   allowed values enforced in `src/lib/auth-types.ts`, not Prisma enums.
-- **`better-sqlite3` needs a matching Node ABI or a C++ toolchain.** On a
-  very new/non-LTS Node version (seen with Node 25 on Windows), there's no
-  prebuilt binary yet and `npm install` fails trying to compile from source
-  without Visual Studio Build Tools. Fix: use Node 22 LTS. Don't "fix" this
-  by ripping out the native dependency.
+- **Database is Turso (libSQL), not a local SQLite file.** `prisma/schema.prisma`'s
+  datasource `provider` stays `"sqlite"` — libSQL is wire-compatible with
+  SQLite, so the schema, migrations, and queries are unchanged from plain
+  SQLite. What actually changes is the connection: `DATABASE_URL` (a
+  `libsql://...` URL) plus `TURSO_AUTH_TOKEN`, read in `src/lib/db.ts`. This
+  is what makes the member area (accounts, events, attendance) safe to
+  deploy to Vercel — serverless functions have an ephemeral, read-only
+  filesystem, so a local SQLite file would lose every write on the next
+  cold start/redeploy; Turso is a real network database instead. Local dev
+  needs no Turso account: leave `DATABASE_URL` as the default
+  `file:./dev.db` in `.env` and libSQL behaves exactly like local SQLite.
+  Point it at a real `libsql://` URL (with `TURSO_AUTH_TOKEN` set) to run
+  against Turso, e.g. for a shared dev database or to reproduce a
+  production-only issue.
 - **Disabled `<select>`/`<input>` elements are not included in FormData on
   submit.** `NewEventForm.tsx`'s team selector is disabled for Trainers
   (locked to their team) and pairs a disabled `<select>` (display only) with
