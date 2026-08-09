@@ -16,8 +16,9 @@ reset is the single exception.
   the other team's fixtures.
 - See **their own attendance record only**: present, absent, or excused across
   past sessions.
-- See **their own membership/fee contribution status** — what they have paid
-  and what is outstanding.
+- See **their own membership/fee contributions, itemized** — amount, date,
+  and period/tier for each entry, plus an outstanding total computed
+  automatically from their tier's fee (not entered by hand).
 - Set a new password **when forced to** after account creation or an Admin
   reset.
 
@@ -45,6 +46,21 @@ side effect of account creation.
 A Player's team follows from their roster entry rather than being set
 independently on the account.
 
+## Multi-role
+
+A Player account can also hold Trainer and/or Admin roles at once — e.g. a
+playing coach. See
+[Multi-role accounts](../roles-and-permissions.md#multi-role-accounts) for
+the general rules. The practical effect for a Player: their own roster
+entry, personal schedule view, and personal attendance/fee record described
+above stay theirs regardless of what other roles they also hold — a
+Player+Trainer still sees their own attendance the way any Player does, in
+addition to the club-wide Trainer powers on top.
+
+Adding the Player role to an existing Trainer/Admin account auto-creates a
+roster entry, same as a fresh Player signup. Removing Player from a
+multi-role account unpublishes but retains that roster entry.
+
 ## Account lifecycle
 
 - **Created** by an Admin from `/dashboard/users` — no self-registration.
@@ -62,8 +78,9 @@ independently on the account.
 | Attendance visibility | Own record | Unchanged |
 | Roster link | Optional, picked from `players.json` dropdown | Auto-created, publish-gated |
 | Password | Admin-set, permanent | Forced change on first login and after reset |
-| Fee records | Do not exist | Sees own record |
+| Fee records | Do not exist | Sees own itemized record, outstanding auto-computed |
 | Read-only | Yes | Unchanged |
+| Roles | Single role only | Can combine with Trainer/Admin |
 
 The roster-link change is the significant one: it requires players to move from
 `src/lib/data/players.json` into a database table with a `published` flag.
