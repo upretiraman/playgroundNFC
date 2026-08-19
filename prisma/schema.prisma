@@ -23,6 +23,7 @@ model User {
   passwordHash String
   name         String
   role         String // "PLAYER" | "TRAINER" | "ADMIN"
+  isSuperAdmin Boolean  @default(false) // gates Admin-on-Admin account management; only meaningful when role is "ADMIN"
   team         String? // "boys" | "girls" — scopes TRAINER/PLAYER to a team; null for ADMIN
   playerSlug   String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
   createdAt    DateTime @default(now())

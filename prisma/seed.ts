@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import playersData from "../src/lib/data/players.json";
 
-const adapter = new PrismaBetterSqlite3({
+const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL ?? "file:./dev.db",
+  authToken: process.env.TURSO_AUTH_TOKEN,
 });
 const db = new PrismaClient({ adapter });
 
@@ -47,7 +48,13 @@ async function main() {
         passwordHash,
         name: "Club Administrator",
         role: "ADMIN",
+        isSuperAdmin: true,
       },
+    });
+  } else if (!admin.isSuperAdmin) {
+    admin = await db.user.update({
+      where: { id: admin.id },
+      data: { isSuperAdmin: true },
     });
   }
 
