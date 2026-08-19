@@ -33,6 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role as UserRole,
+          isSuperAdmin: user.isSuperAdmin,
           team: user.team as "boys" | "girls" | null,
           playerSlug: user.playerSlug,
         };
@@ -43,6 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.isSuperAdmin = user.isSuperAdmin;
         token.team = user.team;
         token.playerSlug = user.playerSlug;
       }
@@ -52,6 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.sub as string;
         session.user.role = token.role as UserRole;
+        session.user.isSuperAdmin = token.isSuperAdmin as boolean;
         session.user.team = token.team as "boys" | "girls" | null;
         session.user.playerSlug = token.playerSlug as string | null;
       }

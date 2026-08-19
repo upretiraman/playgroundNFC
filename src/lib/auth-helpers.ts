@@ -32,3 +32,9 @@ export function canManageEventTeam(
   if (team === "both") return user.role === "ADMIN";
   return canManageTeam(user, team);
 }
+
+/** Creating, editing, disabling, or promoting another Admin — and granting/revoking
+ * the super-admin flag itself — is restricted to super-admins. */
+export function canManageAdmins(user: SessionUser) {
+  return user.role === "ADMIN" && user.isSuperAdmin;
+}

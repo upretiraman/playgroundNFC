@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/auth-helpers";
+import { canManageAdmins, requireRole } from "@/lib/auth-helpers";
 import { ROLES, type UserRole } from "@/lib/auth-types";
 
 function requireString(formData: FormData, key: string): string {
@@ -15,7 +15,7 @@ function requireString(formData: FormData, key: string): string {
 }
 
 export async function createUser(formData: FormData) {
-  await requireRole(["ADMIN"]);
+  const actingUser = await requireRole(["ADMIN"]);
 
   const name = requireString(formData, "name");
   const email = requireString(formData, "email").toLowerCase().trim();
@@ -26,6 +26,9 @@ export async function createUser(formData: FormData) {
 
   if (!ROLES.includes(role)) {
     throw new Error("Invalid role");
+  }
+  if (role === "ADMIN" && !canManageAdmins(actingUser)) {
+    throw new Error("Only a super-admin can create an Administrator account.");
   }
   if ((role === "PLAYER" || role === "TRAINER") && !team) {
     throw new Error("Team is required for Player and Trainer accounts");

@@ -92,6 +92,7 @@ export default async function UsersPage() {
                   name: p.name,
                   team: p.team,
                 }))}
+                isSuperAdmin={user.isSuperAdmin}
               />
             </div>
           </div>

@@ -17,6 +17,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: UserRole;
+  isSuperAdmin: boolean;
   team: "boys" | "girls" | null;
   playerSlug: string | null;
 }

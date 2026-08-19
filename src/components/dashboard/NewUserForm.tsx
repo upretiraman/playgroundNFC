@@ -20,8 +20,10 @@ function generatePassword() {
 
 export default function NewUserForm({
   players,
+  isSuperAdmin,
 }: {
   players: PlayerOption[];
+  isSuperAdmin: boolean;
 }) {
   const [role, setRole] = useState<UserRole>("PLAYER");
   const [team, setTeam] = useState<"boys" | "girls">("boys");
@@ -146,7 +148,7 @@ export default function NewUserForm({
           >
             <option value="PLAYER">Player</option>
             <option value="TRAINER">Trainer</option>
-            <option value="ADMIN">Administrator</option>
+            {isSuperAdmin && <option value="ADMIN">Administrator</option>}
           </select>
         </div>
 
