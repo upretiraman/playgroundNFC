@@ -26,7 +26,7 @@ model User {
   isSuperAdmin       Boolean  @default(false) // gates Admin-on-Admin account management; only meaningful when roles includes "ADMIN"
   isActive           Boolean  @default(true) // soft disable — false blocks authentication, history is retained
   mustChangePassword Boolean  @default(true) // forces a password change on next login, after account creation or an Admin reset
-  team               String? // "boys" | "girls" — scopes TRAINER/PLAYER to a team; null for ADMIN-only accounts
+  team               String? // "boys" | "girls" — meaningful only for PLAYER (follows their roster entry); null for TRAINER/ADMIN-only accounts
   playerSlug         String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

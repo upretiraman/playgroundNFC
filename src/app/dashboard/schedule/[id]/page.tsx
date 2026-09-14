@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Container from "@/components/Container";
 import PlanEditor from "@/components/dashboard/PlanEditor";
 import AttendanceRow from "@/components/dashboard/AttendanceRow";
@@ -27,15 +27,6 @@ export default async function EventDetailPage({
   if (!event) notFound();
 
   const eventTeam = event.team as TeamSlug | "both";
-  const canView =
-    user.roles.includes("ADMIN") ||
-    eventTeam === "both" ||
-    user.team === eventTeam;
-
-  if (!canView) {
-    redirect("/dashboard/schedule");
-  }
-
   const canEdit = canManageEventTeam(user, eventTeam);
 
   const rosterTeam = eventTeam === "both" ? undefined : eventTeam;

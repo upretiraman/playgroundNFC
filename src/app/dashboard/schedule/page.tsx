@@ -3,7 +3,6 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import { getSessionUser } from "@/lib/auth-helpers";
 import { listEvents } from "@/lib/events";
-import type { TeamSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Schedule",
@@ -13,8 +12,7 @@ export default async function SchedulePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const team = user.roles.includes("ADMIN") ? undefined : (user.team as TeamSlug);
-  const events = await listEvents(team ?? undefined);
+  const events = await listEvents();
 
   const canCreate = user.roles.includes("TRAINER") || user.roles.includes("ADMIN");
 
