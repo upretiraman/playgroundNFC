@@ -5,6 +5,7 @@ import NewUserForm from "@/components/dashboard/NewUserForm";
 import { getSessionUser } from "@/lib/auth-helpers";
 import { db } from "@/lib/db";
 import { repository } from "@/lib/repository";
+import { parseRoles } from "@/lib/auth-types";
 
 export const metadata: Metadata = {
   title: "Manage Accounts",
@@ -19,7 +20,7 @@ const ROLE_LABEL: Record<string, string> = {
 export default async function UsersPage() {
   const user = await getSessionUser();
   if (!user) return null;
-  if (user.role !== "ADMIN") {
+  if (!user.roles.includes("ADMIN")) {
     redirect("/dashboard");
   }
 
@@ -69,7 +70,19 @@ export default async function UsersPage() {
                         {u.email}
                       </td>
                       <td className="p-3 text-sm text-charcoal-soft">
-                        {ROLE_LABEL[u.role] ?? u.role}
+                        {parseRoles(u.roles)
+                          .map((r) => ROLE_LABEL[r] ?? r)
+                          .join(" + ")}
+                        {u.isSuperAdmin && (
+                          <span className="ml-1 text-xs text-gold">
+                            (super-admin)
+                          </span>
+                        )}
+                        {!u.isActive && (
+                          <span className="ml-1 text-xs text-crimson">
+                            (disabled)
+                          </span>
+                        )}
                       </td>
                       <td className="p-3 text-sm capitalize text-charcoal-soft">
                         {u.team ?? "—"}

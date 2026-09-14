@@ -75,7 +75,8 @@ async function seedAccounts() {
     data: {
       email: creds.admin.email,
       name: "Smoke Test Admin",
-      role: "ADMIN",
+      roles: "ADMIN",
+      mustChangePassword: false,
       passwordHash: await bcrypt.hash(creds.admin.password, 10),
     },
   });
@@ -85,8 +86,9 @@ async function seedAccounts() {
     data: {
       email: creds.trainer.email,
       name: "Smoke Test Trainer",
-      role: "TRAINER",
+      roles: "TRAINER",
       team: "boys",
+      mustChangePassword: false,
       passwordHash: await bcrypt.hash(creds.trainer.password, 10),
     },
   });
@@ -96,9 +98,10 @@ async function seedAccounts() {
     data: {
       email: creds.player.email,
       name: rosterPlayer!.name,
-      role: "PLAYER",
+      roles: "PLAYER",
       team: "boys",
       playerSlug: rosterPlayer!.slug,
+      mustChangePassword: false,
       passwordHash: await bcrypt.hash(creds.player.password, 10),
     },
   });

@@ -13,10 +13,10 @@ export default async function SchedulePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const team = user.role === "ADMIN" ? undefined : (user.team as TeamSlug);
+  const team = user.roles.includes("ADMIN") ? undefined : (user.team as TeamSlug);
   const events = await listEvents(team ?? undefined);
 
-  const canCreate = user.role === "TRAINER" || user.role === "ADMIN";
+  const canCreate = user.roles.includes("TRAINER") || user.roles.includes("ADMIN");
 
   return (
     <div className="bg-cream py-16 sm:py-20">

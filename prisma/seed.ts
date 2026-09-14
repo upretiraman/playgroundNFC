@@ -47,8 +47,9 @@ async function main() {
         email: adminEmail,
         passwordHash,
         name: "Club Administrator",
-        role: "ADMIN",
+        roles: "ADMIN",
         isSuperAdmin: true,
+        mustChangePassword: false,
       },
     });
   } else if (!admin.isSuperAdmin) {

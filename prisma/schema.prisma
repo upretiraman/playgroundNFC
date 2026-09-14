@@ -18,16 +18,18 @@ datasource db {
 // strings; allowed values are enforced in the TypeScript layer (src/lib/auth-types.ts).
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         String // "PLAYER" | "TRAINER" | "ADMIN"
-  isSuperAdmin Boolean  @default(false) // gates Admin-on-Admin account management; only meaningful when role is "ADMIN"
-  team         String? // "boys" | "girls" — scopes TRAINER/PLAYER to a team; null for ADMIN
-  playerSlug   String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  name               String
+  roles              String // comma-separated set, any combination of "PLAYER" | "TRAINER" | "ADMIN" (e.g. "PLAYER,TRAINER")
+  isSuperAdmin       Boolean  @default(false) // gates Admin-on-Admin account management; only meaningful when roles includes "ADMIN"
+  isActive           Boolean  @default(true) // soft disable — false blocks authentication, history is retained
+  mustChangePassword Boolean  @default(true) // forces a password change on next login, after account creation or an Admin reset
+  team               String? // "boys" | "girls" — scopes TRAINER/PLAYER to a team; null for ADMIN-only accounts
+  playerSlug         String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   createdEvents Event[]
   products      Product[]

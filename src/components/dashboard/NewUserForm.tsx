@@ -25,7 +25,7 @@ export default function NewUserForm({
   players: PlayerOption[];
   isSuperAdmin: boolean;
 }) {
-  const [role, setRole] = useState<UserRole>("PLAYER");
+  const [roles, setRoles] = useState<UserRole[]>(["PLAYER"]);
   const [team, setTeam] = useState<"boys" | "girls">("boys");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +37,14 @@ export default function NewUserForm({
     [players, team]
   );
 
+  function toggleRole(role: UserRole) {
+    setRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    );
+  }
+
+  const needsTeam = roles.includes("PLAYER") || roles.includes("TRAINER");
+
   return (
     <form
       action={(formData) => {
@@ -47,6 +55,8 @@ export default function NewUserForm({
             await createUser(formData);
             setSuccess("Account created.");
             setPassword("");
+            setRoles(["PLAYER"]);
+            setTeam("boys");
             (document.getElementById("new-user-form") as HTMLFormElement)?.reset();
           } catch (e) {
             setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -133,26 +143,36 @@ export default function NewUserForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="role"
-            className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
-          >
-            Role
-          </label>
-          <select
-            id="role"
-            name="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as UserRole)}
-            className="mt-1 w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
-          >
-            <option value="PLAYER">Player</option>
-            <option value="TRAINER">Trainer</option>
-            {isSuperAdmin && <option value="ADMIN">Administrator</option>}
-          </select>
+          <span className="font-display text-xs uppercase tracking-wide text-charcoal-soft">
+            Roles
+          </span>
+          <div className="mt-1 flex flex-wrap gap-4 py-2.5">
+            {(["PLAYER", "TRAINER", ...(isSuperAdmin ? (["ADMIN"] as const) : [])] as UserRole[]).map(
+              (r) => (
+                <label
+                  key={r}
+                  className="flex items-center gap-2 text-sm text-charcoal"
+                >
+                  <input
+                    type="checkbox"
+                    name="roles"
+                    value={r}
+                    checked={roles.includes(r)}
+                    onChange={() => toggleRole(r)}
+                    className="h-4 w-4 rounded border-cream-dark text-crimson focus:ring-crimson"
+                  />
+                  {r === "PLAYER"
+                    ? "Player"
+                    : r === "TRAINER"
+                      ? "Trainer"
+                      : "Administrator"}
+                </label>
+              )
+            )}
+          </div>
         </div>
 
-        {role !== "ADMIN" && (
+        {needsTeam && (
           <div>
             <label
               htmlFor="team"
@@ -174,7 +194,7 @@ export default function NewUserForm({
         )}
       </div>
 
-      {role === "PLAYER" && (
+      {roles.includes("PLAYER") && (
         <div>
           <label
             htmlFor="playerSlug"

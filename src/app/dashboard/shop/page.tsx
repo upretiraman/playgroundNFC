@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function DashboardShopPage() {
   const user = await getSessionUser();
   if (!user) return null;
-  if (user.role !== "ADMIN") {
+  if (!user.roles.includes("ADMIN")) {
     redirect("/dashboard");
   }
 

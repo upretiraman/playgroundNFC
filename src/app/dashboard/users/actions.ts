@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { canManageAdmins, requireRole } from "@/lib/auth-helpers";
-import { ROLES, type UserRole } from "@/lib/auth-types";
+import { ROLES, serializeRoles, type UserRole } from "@/lib/auth-types";
 
 function requireString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -20,17 +20,20 @@ export async function createUser(formData: FormData) {
   const name = requireString(formData, "name");
   const email = requireString(formData, "email").toLowerCase().trim();
   const password = requireString(formData, "password");
-  const role = requireString(formData, "role") as UserRole;
+  const roles = formData
+    .getAll("roles")
+    .filter((r): r is UserRole => ROLES.includes(r as UserRole));
   const team = (formData.get("team") as string) || null;
   const playerSlug = (formData.get("playerSlug") as string) || null;
 
-  if (!ROLES.includes(role)) {
-    throw new Error("Invalid role");
+  if (roles.length === 0) {
+    throw new Error("Select at least one role");
   }
-  if (role === "ADMIN" && !canManageAdmins(actingUser)) {
+  if (roles.includes("ADMIN") && !canManageAdmins(actingUser)) {
     throw new Error("Only a super-admin can create an Administrator account.");
   }
-  if ((role === "PLAYER" || role === "TRAINER") && !team) {
+  const needsTeam = roles.includes("PLAYER") || roles.includes("TRAINER");
+  if (needsTeam && !team) {
     throw new Error("Team is required for Player and Trainer accounts");
   }
   if (password.length < 8) {
@@ -49,9 +52,10 @@ export async function createUser(formData: FormData) {
       name,
       email,
       passwordHash,
-      role,
-      team: role === "ADMIN" ? null : team,
-      playerSlug: role === "PLAYER" ? playerSlug : null,
+      roles: serializeRoles(roles),
+      team: needsTeam ? team : null,
+      playerSlug: roles.includes("PLAYER") ? playerSlug : null,
+      mustChangePassword: true,
     },
   });
 
