@@ -6,8 +6,12 @@ Distinct from [Account Management](./account-management.md): this document
 is a member acting on *their own* access; Account Management is an Admin
 acting on *someone else's* account.
 
-**Status**: Sign-in and route protection are live. Forced password change is
-target only — passwords are Admin-set and permanent today.
+**Status**: Sign-in, route protection, and forced password change are all
+live. One deviation from the target below: since the app has no live
+session-update mechanism, changing the password signs the member out and
+sends them to `/login` rather than clearing the flag in place and continuing
+to the originally requested page — see the note under
+[Current vs. target](#current-vs-target).
 
 ## User stories
 
@@ -33,11 +37,15 @@ target only — passwords are Admin-set and permanent today.
 - Any request under `/dashboard/**` without a valid session redirects to
   `/login?callbackUrl=<original path>` (already implemented via
   `src/proxy.ts` — **not** `middleware.ts`, see `CLAUDE.md`'s gotchas).
-- Once forced reset ships: a `User` with `mustChangePassword: true` who
-  signs in successfully is routed to a "set new password" screen before any
-  other `/dashboard/**` page is reachable, and cannot navigate around it.
-- After setting a new password, `mustChangePassword` clears and normal
-  dashboard access resumes.
+- A `User` with `mustChangePassword: true` who signs in successfully is
+  routed to `/dashboard/change-password` before any other `/dashboard/**`
+  page is reachable (`src/proxy.ts`), and cannot navigate around it.
+- After setting a new password, `mustChangePassword` clears
+  (`src/app/dashboard/change-password/actions.ts`). Rather than continuing
+  to the originally requested page in the same session, the member is
+  signed out and sent to `/login` — the session JWT would otherwise keep
+  carrying the stale `mustChangePassword: true` claim until it next
+  refreshes, re-triggering the same redirect loop.
 - There is no page anywhere in the app for a signed-in member to
   voluntarily change their password outside that forced flow.
 
@@ -56,18 +64,18 @@ target only — passwords are Admin-set and permanent today.
 |---|---|---|
 | Sign-in | Credentials provider, JWT session | Unchanged |
 | Route protection | `src/proxy.ts`, `/dashboard/:path*` | Unchanged |
-| Password lifecycle | Admin sets it at account creation; permanent | Forced change after account creation or an Admin-initiated reset |
+| Password lifecycle | Forced change after account creation or an Admin-initiated reset | Unchanged |
+| Post-change flow | Signs the member out to `/login` (session JWT can't be live-patched) | Clears the flag in place, continues to the originally requested page |
 | Voluntary password change | None | Still none — this is intentional, not a gap |
 
 ## Data model changes
 
-- New `User.mustChangePassword: Boolean` field (default `true` on creation,
-  set `true` again on an Admin-triggered reset — see
+- `User.mustChangePassword: Boolean` (default `true` on creation, set `true`
+  again on an Admin-triggered reset — see
   [Account Management](./account-management.md), cleared once the member
   sets their own password).
-- No changes to the JWT session shape (`SessionUser` in
-  `src/lib/auth-types.ts`) are required by this document alone, though it
-  will also gain fields from the multi-role work — see
+- `SessionUser` (`src/lib/auth-types.ts`) carries `mustChangePassword`
+  alongside the multi-role `roles` array from
   [Account Management](./account-management.md).
 
 ## Permissions
@@ -81,6 +89,7 @@ restates them as acceptance criteria but does not change the rule.
 
 ## Proposed issues
 
-- [ ] **Add `mustChangePassword` to `User`, default `true` on creation**.
-- [ ] **Build the forced "set new password" screen and route guard** — intercepts `/dashboard/**` navigation while the flag is set.
-- [ ] **Clear `mustChangePassword` on successful password set, redirect to originally requested page**.
+- [x] **Add `mustChangePassword` to `User`, default `true` on creation**.
+- [x] **Build the forced "set new password" screen and route guard** — intercepts `/dashboard/**` navigation while the flag is set.
+- [x] **Clear `mustChangePassword` on successful password set** — ships as sign-out-and-relogin rather than an in-place redirect; see the deviation noted above.
+- [ ] **Revisit the post-change flow to avoid the forced sign-out** — would need a live session-update mechanism (e.g. NextAuth's `update()` trigger) to clear the JWT claim without ending the session.

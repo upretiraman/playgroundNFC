@@ -170,15 +170,15 @@ Per-role detail lives on each role page.
 
 | Area | Today | Target |
 |---|---|---|
-| Roles | Single value: `PLAYER`, `TRAINER`, or `ADMIN` | A set — any combination, plus super-admin flag on Admin |
+| Roles | A set — any combination, plus super-admin flag on Admin | Unchanged |
 | Trainer scope | Scoped to one team (`canManageTeam`) | Club-wide, no team |
 | Trainer `team` field | Required at account creation | Dropped |
 | Player schedule | Own team only (`schedule/page.tsx:16`) | Whole club |
 | Admin over events | Full control of any team | Unchanged — full override |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
-| Account management | Create only | Create, edit (incl. role set), reset, deactivate |
-| Admin-manages-Admin | Any Admin can create Admins | Super-admins only |
-| Passwords | Admin-set, permanent | Forced change after create/reset |
+| Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
+| Admin-manages-Admin | Super-admins only | Unchanged |
+| Passwords | Forced change after create/reset | Unchanged |
 | Roster link | Optional, picked from `players.json` | Auto-created/removed as Player role is added/removed, publish-gated |
 | Public content | JSON files, dev-edited | DB-backed, Admin-edited |
 | Membership tiers | No fee amount | Fee amount per tier |
@@ -195,13 +195,15 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
 
 ### Suggested build order
 
-1. **Super-admin flag** — must land before Admins lose Admin-management, or
-   nobody can add an Admin. See [Super-admin](roles/super-admin.md).
-2. **Multi-role account model** — `User.role` becomes a set. This is a schema
-   and auth-helpers foundation change that every later step touches, so it
-   should land before the team-scoping and content work below, alongside the
-   other `User` field additions (`isActive`, `mustChangePassword`) and the
-   account edit/reset/disable UI.
+1. ~~**Super-admin flag**~~ — **done.** `isSuperAdmin` on `User`, enforced by
+   `canManageAdmins` and re-checked in every account action. See
+   [Super-admin](roles/super-admin.md).
+2. ~~**Multi-role account model**~~ — **done.** `User.roles` is a
+   comma-separated set (`PLAYER`/`TRAINER`/`ADMIN` in any combination),
+   plus the `isActive` and `mustChangePassword` fields and the account
+   edit/reset/disable UI at `/dashboard/users/[id]`. Not done: writing to
+   an audit log on these mutations (the log itself doesn't exist yet — see
+   step 6), and any UI to grant/revoke `isSuperAdmin` (still DB/seed-only).
 3. **Trainer de-scoping** — removes `team` checks, touches forms and helpers.
 4. **Player schedule widening** — a one-line scope change plus tests.
 5. **Content migration to the DB** — the largest piece; unblocks roster
