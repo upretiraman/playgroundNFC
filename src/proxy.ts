@@ -7,6 +7,15 @@ export default auth((req) => {
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
+
+  if (
+    req.auth.user.mustChangePassword &&
+    req.nextUrl.pathname !== "/dashboard/change-password"
+  ) {
+    return NextResponse.redirect(
+      new URL("/dashboard/change-password", req.nextUrl.origin)
+    );
+  }
 });
 
 export const config = {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Container from "@/components/Container";
 import NewUserForm from "@/components/dashboard/NewUserForm";
@@ -60,6 +61,7 @@ export default async function UsersPage() {
                     <th className="p-3 font-display text-xs uppercase tracking-wide text-charcoal-soft">
                       Team
                     </th>
+                    <th className="p-3" />
                   </tr>
                 </thead>
                 <tbody>
@@ -86,6 +88,14 @@ export default async function UsersPage() {
                       </td>
                       <td className="p-3 text-sm capitalize text-charcoal-soft">
                         {u.team ?? "—"}
+                      </td>
+                      <td className="p-3 text-right text-sm">
+                        <Link
+                          href={`/dashboard/users/${u.id}`}
+                          className="font-display uppercase tracking-wide text-crimson hover:text-crimson-dark"
+                        >
+                          Edit
+                        </Link>
                       </td>
                     </tr>
                   ))}
