@@ -7,8 +7,9 @@ already reads/writes live from Postgres/libSQL rather than JSON, and the one
 with the most current-vs-target movement — team-scoping is being removed
 entirely.
 
-**Status**: Live. Team-scoping (Trainer and Player limited to one team) is
-the current behavior; the target removes it.
+**Status**: Live, including the Trainer de-scoping and Player schedule
+widening — Trainers manage any team and Players see the whole club schedule.
+Not built: attendance reports.
 
 ## User stories
 
@@ -69,9 +70,9 @@ the current behavior; the target removes it.
 
 | Area | Today | Target |
 |---|---|---|
-| Trainer scope | One team, `canManageTeam` (`src/lib/auth-helpers.ts:21`) | Club-wide, any team |
-| Trainer `team` field | Required at account creation | Dropped |
-| Player schedule view | Own team only (`schedule/page.tsx:16`) | Whole club |
+| Trainer scope | Club-wide, any team (`canManageTeam`, `src/lib/auth-helpers.ts`) | Unchanged |
+| Trainer `team` field | Dropped from account creation/edit | Unchanged |
+| Player schedule view | Whole club (`schedule/page.tsx`) | Unchanged |
 | Player attendance view | Own record | Unchanged |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
 | Attendance reports | Don't exist | Trainer + Admin |
@@ -98,7 +99,7 @@ restate the matrix, only the acceptance criteria that follow from it.
 
 ## Proposed issues
 
-- [ ] **Drop team-scoping from `canManageTeam`/`canManageEventTeam` for Trainers** — coordinate with the `User.team` schema change in Account Management so both land together.
-- [ ] **Remove the team field from Trainer account creation** (`NewUserForm`, `createUser` action) — coordinate with Account Management.
-- [ ] **Widen Player schedule view to the whole club** — `schedule/page.tsx:16`, a scope change plus tests.
+- [x] **Drop team-scoping from `canManageTeam`/`canManageEventTeam` for Trainers**.
+- [x] **Remove the team field from Trainer account creation** (`NewUserForm`, `EditUserForm`, `createUser`/`updateUser` actions).
+- [x] **Widen Player schedule view to the whole club** — `schedule/page.tsx` and the event detail page no longer restrict by team.
 - [ ] **Build attendance reports** (per-player and per-team, date-range filter) for Trainer + Admin.

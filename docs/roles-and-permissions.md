@@ -171,9 +171,9 @@ Per-role detail lives on each role page.
 | Area | Today | Target |
 |---|---|---|
 | Roles | A set — any combination, plus super-admin flag on Admin | Unchanged |
-| Trainer scope | Scoped to one team (`canManageTeam`) | Club-wide, no team |
-| Trainer `team` field | Required at account creation | Dropped |
-| Player schedule | Own team only (`schedule/page.tsx:16`) | Whole club |
+| Trainer scope | Club-wide, no team (`canManageTeam`) | Unchanged |
+| Trainer `team` field | Dropped from account creation/edit | Unchanged |
+| Player schedule | Whole club (`schedule/page.tsx`) | Unchanged |
 | Admin over events | Full control of any team | Unchanged — full override |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
 | Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
@@ -204,8 +204,10 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    edit/reset/disable UI at `/dashboard/users/[id]`. Not done: writing to
    an audit log on these mutations (the log itself doesn't exist yet — see
    step 6), and any UI to grant/revoke `isSuperAdmin` (still DB/seed-only).
-3. **Trainer de-scoping** — removes `team` checks, touches forms and helpers.
-4. **Player schedule widening** — a one-line scope change plus tests.
+3. ~~**Trainer de-scoping**~~ — **done.** `canManageTeam` no longer checks
+   `user.team`; account creation/edit no longer asks a Trainer for one.
+4. ~~**Player schedule widening**~~ — **done.** `/dashboard/schedule` and the
+   event detail page show the whole club to every authenticated role.
 5. **Content migration to the DB** — the largest piece; unblocks roster
    auto-create, publish gating, the CMS, and membership tier fee amounts.
 6. **Attendance reports, fee records, audit log** — new features on top of the

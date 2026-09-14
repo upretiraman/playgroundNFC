@@ -3,8 +3,8 @@
 A coach. `role: "TRAINER"`.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: specification** — parts are not built yet, see
-[Current vs. target](#current-vs-target).
+**Status: built.** Club-wide scope, no `team` field, and attendance reports
+are the only remaining gap — see [Current vs. target](#current-vs-target).
 
 Trainers are **club-wide, not scoped to a team**. Any Trainer may run sessions
 for any team.
@@ -75,17 +75,22 @@ outside the schedule and attendance.
 
 | | Today | Target |
 |---|---|---|
-| Team scope | One team, enforced by `canManageTeam` (`src/lib/auth-helpers.ts:21`) | Club-wide, any team |
-| `team` field | Required at account creation | Dropped |
-| Training sessions | Create/edit, own team | Create/edit, any team |
-| Games | Create/edit, own team | Create/edit, any team |
-| Cancel/delete events | Own team | Any team |
-| Club-wide events | Blocked (`canManageEventTeam:28`) | Unchanged — still blocked |
-| Attendance marking | Own team | Any team |
+| Team scope | Club-wide, any team (`canManageTeam`, `src/lib/auth-helpers.ts`) | Unchanged |
+| `team` field | Dropped from account creation/edit | Unchanged |
+| Training sessions | Create/edit, any team | Unchanged |
+| Games | Create/edit, any team | Unchanged |
+| Cancel/delete events | Any team | Unchanged |
+| Club-wide events | Blocked (`canManageEventTeam`) | Unchanged — still blocked |
+| Attendance marking | Any team | Unchanged |
 | Attendance reports | Do not exist | Can view |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
 | Roles | Can combine with Player/Admin | Unchanged |
 
-Removing team scoping touches `canManageTeam`, `canManageEventTeam`, the
-account creation form and action, and the `NewEventForm` "locked team" pattern
-that currently pairs a disabled `<select>` with a hidden input.
+What shipped: `canManageTeam` (`src/lib/auth-helpers.ts`) dropped its
+team-equality check for Trainers, the new-session form
+(`src/app/dashboard/schedule/new/page.tsx`) offers a Trainer both Boys and
+Girls (not the Admin-only club-wide option), and `NewUserForm`/`EditUserForm`
+no longer ask for a team when only Trainer is selected.
+
+What's left: attendance reports (per-player/per-team summaries over a date
+range) — see [Event Scheduling & Attendance](../features/event-scheduling-and-attendance.md).

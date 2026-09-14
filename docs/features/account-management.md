@@ -87,7 +87,7 @@ doesn't exist yet).
 | Grant/revoke `isSuperAdmin` | **No** — DB/seed only | Yes, super-admin only |
 | Audit log writes on these mutations | **No** — log model doesn't exist yet | Yes |
 | Roster auto-create | N/A | Adding Player role auto-creates a `Player` row |
-| `User.team` | Required for Player/Trainer at creation | Meaningful only for Players (follows roster entry); dropped for Trainers |
+| `User.team` | Dropped for Trainers; still manually set for Players (roster-follow auto-sync not yet built) | Meaningful only for Players, following their roster entry |
 
 ## Data model changes
 
@@ -128,5 +128,5 @@ not restate the matrix, only the acceptance criteria that follow from it.
 - [x] **Build account deactivate/reactivate UI/action** (soft disable).
 - [ ] **Build UI to grant/revoke the `isSuperAdmin` flag**, with the lockout safeguard (can't zero out super-admins) — see [Super-admin](../roles/super-admin.md).
 - [ ] **Wire Player-role-add/remove to roster auto-create/unpublish** — coordinate with [Teams & Player Rosters](./teams-and-rosters.md).
-- [ ] **Drop the `team` field from Trainer account creation** — coordinate with [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
+- [x] **Drop the `team` field from Trainer account creation** — coordinated with [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
 - [ ] **Write audit-log entries for every account mutation above** — coordinate with [Audit Log](./audit-log.md) so the model lands before or alongside the first write.

@@ -3,7 +3,8 @@
 A club member on a team roster. `role: "PLAYER"`.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: specification** — parts are not built yet, see
+**Status: partially built** — whole-club schedule visibility is live; the
+roster-link/publish-gating and fee-record items are not, see
 [Current vs. target](#current-vs-target).
 
 The role is **read-only**. Setting a password when forced to after an Admin
@@ -74,7 +75,7 @@ multi-role account unpublishes but retains that roster entry.
 
 | | Today | Target |
 |---|---|---|
-| Schedule scope | Own team only (`src/app/dashboard/schedule/page.tsx:16`) | Whole club |
+| Schedule scope | Whole club (`src/app/dashboard/schedule/page.tsx`) | Unchanged |
 | Attendance visibility | Own record | Unchanged |
 | Roster link | Optional, picked from `players.json` dropdown | Auto-created, publish-gated |
 | Password | Forced change on first login and after reset | Unchanged |
