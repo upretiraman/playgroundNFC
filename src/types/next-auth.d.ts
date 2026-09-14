@@ -2,7 +2,9 @@ import type { UserRole } from "@/lib/auth-types";
 
 declare module "next-auth" {
   interface User {
-    role: UserRole;
+    roles: UserRole[];
+    isSuperAdmin: boolean;
+    mustChangePassword: boolean;
     team: "boys" | "girls" | null;
     playerSlug: string | null;
   }
@@ -12,7 +14,9 @@ declare module "next-auth" {
       id: string;
       email: string;
       name: string;
-      role: UserRole;
+      roles: UserRole[];
+      isSuperAdmin: boolean;
+      mustChangePassword: boolean;
       team: "boys" | "girls" | null;
       playerSlug: string | null;
     };
@@ -21,7 +25,9 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    role: UserRole;
+    roles: UserRole[];
+    isSuperAdmin: boolean;
+    mustChangePassword: boolean;
     team: "boys" | "girls" | null;
     playerSlug: string | null;
   }

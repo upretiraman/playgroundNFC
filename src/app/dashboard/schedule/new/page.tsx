@@ -15,12 +15,12 @@ export default async function NewSessionPage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  if (user.role !== "TRAINER" && user.role !== "ADMIN") {
+  if (!user.roles.includes("TRAINER") && !user.roles.includes("ADMIN")) {
     redirect("/dashboard");
   }
 
   const teamOptions =
-    user.role === "ADMIN"
+    user.roles.includes("ADMIN")
       ? [
           { value: "boys", label: "Boys Team" },
           { value: "girls", label: "Girls Team" },

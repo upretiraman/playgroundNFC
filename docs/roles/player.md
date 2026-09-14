@@ -77,10 +77,10 @@ multi-role account unpublishes but retains that roster entry.
 | Schedule scope | Own team only (`src/app/dashboard/schedule/page.tsx:16`) | Whole club |
 | Attendance visibility | Own record | Unchanged |
 | Roster link | Optional, picked from `players.json` dropdown | Auto-created, publish-gated |
-| Password | Admin-set, permanent | Forced change on first login and after reset |
+| Password | Forced change on first login and after reset | Unchanged |
 | Fee records | Do not exist | Sees own itemized record, outstanding auto-computed |
 | Read-only | Yes | Unchanged |
-| Roles | Single role only | Can combine with Trainer/Admin |
+| Roles | Can combine with Trainer/Admin | Unchanged |
 
 The roster-link change is the significant one: it requires players to move from
 `src/lib/data/players.json` into a database table with a `published` flag.

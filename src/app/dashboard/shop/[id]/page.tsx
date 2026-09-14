@@ -19,7 +19,7 @@ export default async function EditProductPage({
   const { id } = await params;
   const user = await getSessionUser();
   if (!user) return null;
-  if (user.role !== "ADMIN") {
+  if (!user.roles.includes("ADMIN")) {
     redirect("/dashboard");
   }
 

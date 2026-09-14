@@ -78,19 +78,20 @@ An Admin account can also hold Trainer and/or Player roles — see
 
 | | Today | Target |
 |---|---|---|
-| Create accounts | Yes (`src/app/dashboard/users/actions.ts:17`) | Unchanged |
-| Edit accounts | No | Yes |
-| Reset passwords | No | Yes, with forced change |
-| Deactivate accounts | No | Yes, soft disable |
-| Create other Admins | Yes | **No** — super-admin only |
+| Create accounts | Yes (`src/app/dashboard/users/actions.ts`) | Unchanged |
+| Edit accounts | Yes | Unchanged |
+| Reset passwords | Yes, with forced change | Unchanged |
+| Deactivate accounts | Yes, soft disable | Unchanged |
+| Create other Admins | **No** — super-admin only | Unchanged |
 | Events | Full control, any team | Unchanged |
 | Club-wide events | Admin-only | Unchanged |
 | Public content | JSON files, dev-edited | Full CMS from the dashboard |
 | Attendance reports | Do not exist | Can view |
 | Fee records | Do not exist | Sees all, itemized; manual entry, outstanding auto-computed |
 | Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
-| Roles | Single role only | Can combine with Trainer/Player |
+| Roles | Can combine with Trainer/Player | Unchanged |
 
-Losing the ability to create fellow Admins is a **reduction** in what the role
-can do today. Implementing it needs the super-admin flag to exist first, or the
-club is left with no one able to add an Admin.
+Losing the ability to create fellow Admins was a **reduction** from what the
+role could do before the super-admin flag existed — already built, so an
+ordinary Admin cannot create, edit, reset, or deactivate a fellow Admin
+today.

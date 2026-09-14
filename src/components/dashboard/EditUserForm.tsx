@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { createUser } from "@/app/dashboard/users/actions";
+import { useRouter } from "next/navigation";
+import { updateUser } from "@/app/dashboard/users/actions";
 import type { UserRole } from "@/lib/auth-types";
 
 interface PlayerOption {
@@ -10,24 +11,28 @@ interface PlayerOption {
   team: "boys" | "girls";
 }
 
-function generatePassword() {
-  return Array.from({ length: 12 }, () =>
-    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"[
-      Math.floor(Math.random() * 57)
-    ]
-  ).join("");
-}
-
-export default function NewUserForm({
+export default function EditUserForm({
+  userId,
   players,
   isSuperAdmin,
+  initialName,
+  initialEmail,
+  initialRoles,
+  initialTeam,
+  initialPlayerSlug,
 }: {
+  userId: string;
   players: PlayerOption[];
   isSuperAdmin: boolean;
+  initialName: string;
+  initialEmail: string;
+  initialRoles: UserRole[];
+  initialTeam: "boys" | "girls" | null;
+  initialPlayerSlug: string | null;
 }) {
-  const [roles, setRoles] = useState<UserRole[]>(["PLAYER"]);
-  const [team, setTeam] = useState<"boys" | "girls">("boys");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [roles, setRoles] = useState<UserRole[]>(initialRoles);
+  const [team, setTeam] = useState<"boys" | "girls">(initialTeam ?? "boys");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -52,18 +57,14 @@ export default function NewUserForm({
         setSuccess(null);
         startTransition(async () => {
           try {
-            await createUser(formData);
-            setSuccess("Account created.");
-            setPassword("");
-            setRoles(["PLAYER"]);
-            setTeam("boys");
-            (document.getElementById("new-user-form") as HTMLFormElement)?.reset();
+            await updateUser(userId, formData);
+            setSuccess("Account updated.");
+            router.refresh();
           } catch (e) {
             setError(e instanceof Error ? e.message : "Something went wrong.");
           }
         });
       }}
-      id="new-user-form"
       className="grid gap-5"
     >
       {error && (
@@ -80,65 +81,36 @@ export default function NewUserForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label
-            htmlFor="name"
+            htmlFor="edit-name"
             className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
           >
             Full Name
           </label>
           <input
-            id="name"
+            id="edit-name"
             name="name"
             type="text"
             required
+            defaultValue={initialName}
             className="mt-1 w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
           />
         </div>
         <div>
           <label
-            htmlFor="email"
+            htmlFor="edit-email"
             className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
           >
             Email
           </label>
           <input
-            id="email"
+            id="edit-email"
             name="email"
             type="email"
             required
+            defaultValue={initialEmail}
             className="mt-1 w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
           />
         </div>
-      </div>
-
-      <div>
-        <label
-          htmlFor="password"
-          className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
-        >
-          Temporary Password
-        </label>
-        <div className="mt-1 flex gap-2">
-          <input
-            id="password"
-            name="password"
-            type="text"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setPassword(generatePassword())}
-            className="shrink-0 rounded border border-cream-dark px-4 py-2.5 font-display text-xs uppercase tracking-wide text-charcoal-soft hover:border-crimson hover:text-crimson"
-          >
-            Generate
-          </button>
-        </div>
-        <p className="mt-1 text-xs text-charcoal-soft/70">
-          Share this with the new member yourself — it&apos;s shown only here.
-        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -175,13 +147,13 @@ export default function NewUserForm({
         {needsTeam && (
           <div>
             <label
-              htmlFor="team"
+              htmlFor="edit-team"
               className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
             >
               Team
             </label>
             <select
-              id="team"
+              id="edit-team"
               name="team"
               value={team}
               onChange={(e) => setTeam(e.target.value as "boys" | "girls")}
@@ -197,15 +169,15 @@ export default function NewUserForm({
       {roles.includes("PLAYER") && (
         <div>
           <label
-            htmlFor="playerSlug"
+            htmlFor="edit-playerSlug"
             className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
           >
             Link to Roster Player (optional)
           </label>
           <select
-            id="playerSlug"
+            id="edit-playerSlug"
             name="playerSlug"
-            defaultValue=""
+            defaultValue={initialPlayerSlug ?? ""}
             className="mt-1 w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
           >
             <option value="">Not linked</option>
@@ -223,7 +195,7 @@ export default function NewUserForm({
         disabled={pending}
         className="rounded bg-crimson px-6 py-3 font-display text-sm uppercase tracking-wide text-cream transition-colors hover:bg-crimson-light disabled:opacity-60"
       >
-        {pending ? "Creating..." : "Create Account"}
+        {pending ? "Saving..." : "Save Changes"}
       </button>
     </form>
   );

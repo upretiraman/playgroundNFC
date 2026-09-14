@@ -4,7 +4,9 @@ Not a separate role — a **flag on an Admin account**. `role` stays `"ADMIN"`;
 a boolean marks the holder as a super-admin.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: specification** — none of this is built yet.
+**Status: partially built** — the flag itself and Admin-on-Admin gating
+exist; granting/revoking it from the dashboard and the audit log do not.
+See [Current vs. target](#current-vs-target).
 
 A super-admin holds **every [Admin](admin.md) permission**, plus the three
 below.
@@ -61,21 +63,26 @@ three exclusive powers are enforced.
 
 ## Current vs. target
 
-Nothing exists today. Every Admin is equal, any Admin can create another Admin,
-and there is no audit log.
+| | Today | Target |
+|---|---|---|
+| `isSuperAdmin` flag on `User` | Yes, defaults false | Unchanged |
+| Bootstrap Admin gets the flag | Yes (`prisma/seed.ts`) | Unchanged |
+| Admin-on-Admin gating | Yes — `canManageAdmins` in `src/lib/auth-helpers.ts`, re-checked in every account action (`src/app/dashboard/users/actions.ts`) | Unchanged |
+| Grant/revoke the flag | **No** — DB/seed only, no dashboard UI | Yes, super-admin only |
+| Lockout safeguard (can't zero out super-admins) | N/A — no UI to revoke it yet | Enforced when grant/revoke ships |
+| Audit log | Does not exist | Covers accounts, events, content, and fee records; super-admin-only read |
 
-Implementation needs, at minimum:
+What shipped: the flag itself and the gating it exists for — an ordinary
+Admin cannot create, edit, reset, or deactivate a fellow Admin
+(`src/app/dashboard/users/actions.ts`'s `loadManageableTarget` /
+`readRoleSet` calls `canManageAdmins`), and the "Administrator" role
+checkbox is hidden from them in `NewUserForm`/`EditUserForm`.
 
-1. An `isSuperAdmin` boolean on `User`, defaulting to false.
-2. `prisma/seed.ts` setting it on the bootstrap Administrator.
-3. A permission helper alongside `canManageTeam` in `src/lib/auth-helpers.ts`,
-   enforced in the server action — not only on the page.
-4. The Admin-management and audit-log UI gated behind it.
-5. An audit log model (actor, action, target, timestamp) written on every
+What's left:
+
+1. UI for a super-admin to grant/revoke the flag on another Admin, plus the
+   lockout safeguard (can't demote themselves or the last remaining
+   super-admin to zero).
+2. An audit log model (actor, action, target, timestamp) written on every
    Admin/super-admin mutation across accounts, events, content, and fee
-   records.
-
-This is the **first thing to build** out of the whole specification: the
-[Admin](admin.md) role loses the ability to create fellow Admins, so without
-the flag in place the club would end up with no one able to add an Admin at
-all.
+   records, with read access gated to super-admins.

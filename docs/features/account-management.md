@@ -9,8 +9,11 @@ almost every other capability's target state depends on the multi-role
 [Auth & Account Access](./auth-and-account-access.md), which is a member
 acting on their *own* session.
 
-**Status**: Create-only exists today. Edit, reset, deactivate, multi-role,
-and the super-admin flag are all target only.
+**Status**: Create, edit, reset, deactivate, and multi-role accounts are all
+built, as is the super-admin flag and its Admin-on-Admin gating. Not built:
+granting/revoking the super-admin flag from the dashboard (still DB/seed
+only), and writing these mutations to an audit log (the log model itself
+doesn't exist yet).
 
 ## User stories
 
@@ -75,12 +78,14 @@ and the super-admin flag are all target only.
 
 | Area | Today | Target |
 |---|---|---|
-| Create accounts | Yes, single role | Unchanged, but role becomes a set |
-| Edit accounts | No | Yes (name, email, role set) |
-| Reset passwords | No | Yes, forces change on next login |
-| Deactivate accounts | No | Yes, soft disable |
-| Admin-manages-Admin | Any Admin can create Admins | Super-admin only |
-| Roles | Single value | A set — any combination, plus the `isSuperAdmin` flag |
+| Create accounts | Yes, any combination of roles | Unchanged |
+| Edit accounts | Yes (name, email, role set, team, roster link) | Unchanged |
+| Reset passwords | Yes, forces change on next login | Unchanged |
+| Deactivate accounts | Yes, soft disable | Unchanged |
+| Admin-manages-Admin | Super-admin only | Unchanged |
+| Roles | A set — any combination, plus the `isSuperAdmin` flag | Unchanged |
+| Grant/revoke `isSuperAdmin` | **No** — DB/seed only | Yes, super-admin only |
+| Audit log writes on these mutations | **No** — log model doesn't exist yet | Yes |
 | Roster auto-create | N/A | Adding Player role auto-creates a `Player` row |
 | `User.team` | Required for Player/Trainer at creation | Meaningful only for Players (follows roster entry); dropped for Trainers |
 
@@ -114,13 +119,14 @@ not restate the matrix, only the acceptance criteria that follow from it.
 
 ## Proposed issues
 
-- [ ] **Add `isSuperAdmin` to `User`, set on bootstrap Admin in `prisma/seed.ts`** — must land before anything below that depends on Admins losing Admin-management, per the roles spec's suggested build order.
-- [ ] **Add super-admin permission helper + server-action gating for Admin-on-Admin actions**.
-- [ ] **Convert `User.role` to a set** — schema, every `role === "X"` check, migration for existing single-role rows.
-- [ ] **Add `isActive` and `mustChangePassword` to `User`**.
-- [ ] **Build account edit UI/action** (name, email, role set).
-- [ ] **Build password-reset UI/action** (sets `mustChangePassword`).
-- [ ] **Build account deactivate/reactivate UI/action** (soft disable).
+- [x] **Add `isSuperAdmin` to `User`, set on bootstrap Admin in `prisma/seed.ts`** — must land before anything below that depends on Admins losing Admin-management, per the roles spec's suggested build order.
+- [x] **Add super-admin permission helper + server-action gating for Admin-on-Admin actions**.
+- [x] **Convert `User.role` to a set** — schema, every `role === "X"` check, migration for existing single-role rows.
+- [x] **Add `isActive` and `mustChangePassword` to `User`**.
+- [x] **Build account edit UI/action** (name, email, role set).
+- [x] **Build password-reset UI/action** (sets `mustChangePassword`).
+- [x] **Build account deactivate/reactivate UI/action** (soft disable).
+- [ ] **Build UI to grant/revoke the `isSuperAdmin` flag**, with the lockout safeguard (can't zero out super-admins) — see [Super-admin](../roles/super-admin.md).
 - [ ] **Wire Player-role-add/remove to roster auto-create/unpublish** — coordinate with [Teams & Player Rosters](./teams-and-rosters.md).
 - [ ] **Drop the `team` field from Trainer account creation** — coordinate with [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
 - [ ] **Write audit-log entries for every account mutation above** — coordinate with [Audit Log](./audit-log.md) so the model lands before or alongside the first write.

@@ -11,17 +11,18 @@ export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) return null; // middleware guarantees a session here
 
-  const roleLabel: Record<typeof user.role, string> = {
+  const roleLabel: Record<string, string> = {
     PLAYER: "Player",
     TRAINER: "Trainer",
     ADMIN: "Administrator",
   };
+  const areaLabel = user.roles.map((r) => roleLabel[r]).join(" + ");
 
   return (
     <div className="bg-cream py-16 sm:py-20">
       <Container className="max-w-3xl">
         <span className="font-display text-sm uppercase tracking-[0.3em] text-crimson">
-          {roleLabel[user.role]} Area
+          {areaLabel} Area
         </span>
         <h1 className="mt-2 font-display text-4xl text-charcoal sm:text-5xl">
           Welcome, {user.name}
@@ -36,13 +37,13 @@ export default async function DashboardPage() {
               Training &amp; Game Schedule
             </p>
             <p className="mt-2 text-sm text-charcoal-soft">
-              {user.role === "PLAYER"
-                ? "See upcoming sessions, training plans, and your attendance."
-                : "Schedule trainings and games, set plans, and mark attendance."}
+              {user.roles.includes("TRAINER") || user.roles.includes("ADMIN")
+                ? "Schedule trainings and games, set plans, and mark attendance."
+                : "See upcoming sessions, training plans, and your attendance."}
             </p>
           </Link>
 
-          {(user.role === "TRAINER" || user.role === "ADMIN") && (
+          {(user.roles.includes("TRAINER") || user.roles.includes("ADMIN")) && (
             <Link
               href="/dashboard/schedule/new"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
@@ -56,7 +57,7 @@ export default async function DashboardPage() {
             </Link>
           )}
 
-          {user.role === "ADMIN" && (
+          {user.roles.includes("ADMIN") && (
             <Link
               href="/dashboard/users"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
@@ -70,7 +71,7 @@ export default async function DashboardPage() {
             </Link>
           )}
 
-          {user.role === "ADMIN" && (
+          {user.roles.includes("ADMIN") && (
             <Link
               href="/dashboard/shop"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"

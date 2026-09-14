@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import type { UserRole } from "@/lib/auth-types";
+import { parseRoles, type UserRole } from "@/lib/auth-types";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -23,7 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null;
 
         const user = await db.user.findUnique({ where: { email } });
-        if (!user) return null;
+        if (!user || !user.isActive) return null;
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
@@ -32,7 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role as UserRole,
+          roles: parseRoles(user.roles),
+          isSuperAdmin: user.isSuperAdmin,
+          mustChangePassword: user.mustChangePassword,
           team: user.team as "boys" | "girls" | null,
           playerSlug: user.playerSlug,
         };
@@ -42,7 +44,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.roles = user.roles;
+        token.isSuperAdmin = user.isSuperAdmin;
+        token.mustChangePassword = user.mustChangePassword;
         token.team = user.team;
         token.playerSlug = user.playerSlug;
       }
@@ -51,7 +55,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        session.user.role = token.role as UserRole;
+        session.user.roles = token.roles as UserRole[];
+        session.user.isSuperAdmin = token.isSuperAdmin as boolean;
+        session.user.mustChangePassword = token.mustChangePassword as boolean;
         session.user.team = token.team as "boys" | "girls" | null;
         session.user.playerSlug = token.playerSlug as string | null;
       }

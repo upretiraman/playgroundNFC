@@ -12,15 +12,15 @@ export async function requireRole(
 ): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) throw new Error("Not authenticated");
-  if (!roles.includes(user.role)) {
+  if (!roles.some((r) => user.roles.includes(r))) {
     throw new Error("Not authorized");
   }
   return user;
 }
 
 export function canManageTeam(user: SessionUser, team: "boys" | "girls") {
-  if (user.role === "ADMIN") return true;
-  if (user.role === "TRAINER") return user.team === team;
+  if (user.roles.includes("ADMIN")) return true;
+  if (user.roles.includes("TRAINER")) return user.team === team;
   return false;
 }
 
@@ -29,6 +29,12 @@ export function canManageEventTeam(
   user: SessionUser,
   team: "boys" | "girls" | "both"
 ) {
-  if (team === "both") return user.role === "ADMIN";
+  if (team === "both") return user.roles.includes("ADMIN");
   return canManageTeam(user, team);
+}
+
+/** Creating, editing, disabling, or promoting another Admin — and granting/revoking
+ * the super-admin flag itself — is restricted to super-admins. */
+export function canManageAdmins(user: SessionUser) {
+  return user.roles.includes("ADMIN") && user.isSuperAdmin;
 }

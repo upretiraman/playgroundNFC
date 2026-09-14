@@ -84,7 +84,7 @@ outside the schedule and attendance.
 | Attendance marking | Own team | Any team |
 | Attendance reports | Do not exist | Can view |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
-| Roles | Single role only | Can combine with Player/Admin |
+| Roles | Can combine with Player/Admin | Unchanged |
 
 Removing team scoping touches `canManageTeam`, `canManageEventTeam`, the
 account creation form and action, and the `NewEventForm` "locked team" pattern

@@ -17,9 +17,9 @@ document, Workitem).
 | [News](features/news.md) | Article listing + detail pages | Live, JSON-backed |
 | [Teams & Player Rosters](features/teams-and-rosters.md) | Team/roster browsing, player profiles | Live browsing; roster auto-create/publish-gating is target only |
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
-| [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live sign-in; forced reset is target only |
+| [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live; Trainer de-scoping and Player schedule widening are target only |
-| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Create-only is live; everything else is target only |
+| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable and multi-role; granting the super-admin flag from the dashboard and audit-log writes are target only |
 | [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Not built |
 | [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Not built |
 
@@ -32,14 +32,17 @@ dependency chain already laid out in
 expanded to cover the capabilities that spec doesn't itself track (Shop,
 News, Public Content migration).
 
-1. **Super-admin flag** ([Account Management](features/account-management.md)) —
-   must land before Admins lose the ability to create fellow Admins, or
-   nobody can add an Admin at all.
-2. **Multi-role account model** ([Account Management](features/account-management.md)) —
-   `User.role` becomes a set, plus `isActive` and `mustChangePassword`. This
-   is the schema foundation that steps 3–7 below all touch.
-3. **Forced password change flow** ([Auth & Account Access](features/auth-and-account-access.md)) —
-   depends on `mustChangePassword` from step 2.
+1. ~~**Super-admin flag**~~ ([Account Management](features/account-management.md)) —
+   **done.** Must land before Admins lose the ability to create fellow
+   Admins, or nobody can add an Admin at all.
+2. ~~**Multi-role account model**~~ ([Account Management](features/account-management.md)) —
+   **done.** `User.roles` is a set, plus `isActive` and
+   `mustChangePassword`, and the account edit/reset/disable UI. This is the
+   schema foundation that steps 4–7 below all touch.
+3. ~~**Forced password change flow**~~ ([Auth & Account Access](features/auth-and-account-access.md)) —
+   **done**, depended on `mustChangePassword` from step 2. Ships as
+   sign-out-and-relogin after the change rather than an in-place redirect —
+   see that document's Current vs. target for why.
 4. **Trainer de-scoping and Player schedule widening**
    ([Event Scheduling & Attendance](features/event-scheduling-and-attendance.md)) —
    depends on the `User.team` changes from step 2.
