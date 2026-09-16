@@ -138,6 +138,24 @@ model NewsItem {
   updatedAt  DateTime @updatedAt
 }
 
+// A membership tier (Active/Supporting/Guest-Trial) — the public
+// description Guests see on /club, plus the feeAmount Contribution's
+// outstanding-balance computation reads. Backed by the DB (migrated off
+// src/lib/data/membership-tiers.json). See docs/features/public-content.md.
+// Contribution.tierSlug stays a loose string reference into this table's
+// slug, same pattern as Attendance.playerSlug before Player became a table.
+model MembershipTier {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  friendlies  String
+  tournaments String
+  feeAmount   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Product {
   id          String   @id @default(cuid())
   slug        String   @unique
