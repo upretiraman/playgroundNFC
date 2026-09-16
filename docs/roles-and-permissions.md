@@ -112,8 +112,9 @@ Each contribution carries an **amount**, a **date**, and the **period/tier**
 it covers. "Outstanding" is not entered by hand: it is computed as the
 tier's fee amount minus the contributions recorded for that period, so an
 Admin only ever enters what was actually paid. This requires each
-membership tier to carry a fee amount, which `membership-tiers.json` does
-not today.
+membership tier to carry a fee amount — `membership-tiers.json` now does
+(annual, EUR); the contribution-tracking and outstanding-balance logic
+itself is still not built.
 
 A Player sees an itemized list of their own contributions (not just a
 paid/outstanding summary); an Admin sees the same for every member.
@@ -161,8 +162,10 @@ not yet support:
    reference), and an audit log of admin actions (actor, action, target,
    timestamp — no diff). See [Membership/fee records](#membershipfee-records)
    and [Audit log](#audit-log).
-7. **`MembershipTier` gains a fee amount.** `membership-tiers.json` today has
-   no price field; computing "outstanding" requires one per tier.
+7. ~~**`MembershipTier` gains a fee amount.**~~ — **done.**
+   `membership-tiers.json` now carries a `feeAmount` per tier (annual, EUR).
+   The rest of this item — the contribution model and the outstanding
+   computation that consumes this field — is still not built.
 8. **Attendance** keeps its `playerSlug` link but points at the `Player` table
    rather than a JSON file.
 
@@ -186,7 +189,7 @@ Per-role detail lives on each role page.
 | Passwords | Forced change after create/reset | Unchanged |
 | Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
 | Public content | Player profiles: DB-backed, Admin-edited (`/dashboard/roster`). News, club info, membership tiers: JSON files, dev-edited | DB-backed, Admin-edited, for all content types |
-| Membership tiers | No fee amount | Fee amount per tier |
+| Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
 | Fee records | None | Manual entry; Admin sees all, member sees own itemized, outstanding auto-computed |
@@ -236,9 +239,15 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    auto-create/unpublish tied to adding/removing the Player role on an
    account (`User.playerSlug` is still a loose string link, not a relation)
    — see [Data model consequences](#data-model-consequences) item 2.
-7. **News, club info, membership tiers to the DB** — the remaining piece of
+7. ~~**`MembershipTier` fee amount**~~ — **done, ahead of the content
+   migration below.** `membership-tiers.json` gained a `feeAmount` field
+   (annual, EUR) — see [Data model consequences](#data-model-consequences)
+   item 7. It's the one piece of the fee-records data model that didn't need
+   to wait on `MembershipTier` moving to Prisma, since it's just a new field
+   on the existing JSON shape.
+8. **News, club info, membership tiers to the DB** — the remaining piece of
    content migration, plus wiring roster auto-create into account role
    changes.
-8. **Fee records, audit log** — new features on top of the migrated model.
+9. **Fee records, audit log** — new features on top of the migrated model.
    The audit log should be scoped to cover content and fee mutations from
    the start, not bolted on later.
