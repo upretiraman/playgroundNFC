@@ -159,6 +159,20 @@ export default async function DashboardPage() {
 
           {user.roles.includes("ADMIN") && (
             <Link
+              href="/dashboard/membership-tiers"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Membership Tiers
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Create, edit, and remove membership tiers.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
               href="/dashboard/shop"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
             >

@@ -71,7 +71,7 @@ per-member detail + record form). Writing to the audit log is target only
 |---|---|---|
 | Fee records | Manual entry by Admin; amount, date, tier, period (year) per contribution (`Contribution` model) | Unchanged |
 | Outstanding | Auto-computed per `(tierSlug, periodYear)`: tier fee minus recorded contributions | Unchanged |
-| Membership tiers | Has a `feeAmount` field (`membership-tiers.json`, annual EUR) — shared dependency with [Public Content & Static Info](./public-content.md), done there first | Unchanged — this document only consumes the field, doesn't own it |
+| Membership tiers | Has a `feeAmount` field, now Prisma-backed (`MembershipTier`) — shared dependency with [Public Content & Static Info](./public-content.md), done there first | Unchanged — this document only consumes the field, doesn't own it |
 | Player view | Own itemized contributions + outstanding (`/dashboard/fees`) | Unchanged |
 | Admin view | All Player-role members' itemized contributions + outstanding (`/dashboard/fees`, `/dashboard/fees/[id]`) | Unchanged |
 | Audit trail | Not written anywhere yet | Every contribution recorded is an audit-log entry |
@@ -79,11 +79,14 @@ per-member detail + record form). Writing to the audit log is target only
 ## Data model changes
 
 - **Built**: `Contribution` Prisma model — `amount` (Float), `date`,
-  `tierSlug` (loose reference into `membership-tiers.json`, same pattern as
+  `tierSlug` (loose reference into `MembershipTier.slug`, same pattern as
   `Attendance.playerSlug` before `Player` became a table), `periodYear`
   (Int), `memberId` (→ `User.id`), `recordedById` (→ `User.id`,  the
   Admin), `createdAt`. Append-only — no update/delete action, matching
-  [Out of scope](#out-of-scope).
+  [Out of scope](#out-of-scope). `tierSlug` stayed a plain string
+  reference (never a foreign key) even after `MembershipTier` itself moved
+  off JSON to Prisma in [Public Content & Static Info](./public-content.md)
+  — no change needed here when that landed.
 - `MembershipTier` gains a `feeAmount` field — **done**. This was the
   **same** schema change called out in
   [Public Content & Static Info](./public-content.md); it landed once,

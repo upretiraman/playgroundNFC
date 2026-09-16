@@ -1,5 +1,4 @@
 import teamsJson from "./data/teams.json";
-import membershipTiersJson from "./data/membership-tiers.json";
 import { db } from "./db";
 import type {
   ClubInfo,
@@ -109,7 +108,10 @@ class JsonClubRepository implements ClubRepository {
   }
 
   async getMembershipTiers(): Promise<MembershipTier[]> {
-    return membershipTiersJson as MembershipTier[];
+    const tiers = await db.membershipTier.findMany({
+      orderBy: { createdAt: "asc" },
+    });
+    return tiers as MembershipTier[];
   }
 
   async getProducts(): Promise<Product[]> {
