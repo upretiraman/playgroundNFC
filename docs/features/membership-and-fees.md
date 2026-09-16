@@ -57,7 +57,7 @@ entirely new.
 |---|---|---|
 | Fee records | Do not exist | Manual entry by Admin; amount, date, period/tier per contribution |
 | Outstanding | N/A | Auto-computed: tier fee minus recorded contributions for the period |
-| Membership tiers | No fee amount (`membership-tiers.json`) | Gains a `feeAmount` field — shared dependency with [Public Content & Static Info](./public-content.md) |
+| Membership tiers | Has a `feeAmount` field (`membership-tiers.json`, annual EUR) — shared dependency with [Public Content & Static Info](./public-content.md), done there first | Unchanged — this document only consumes the field, doesn't own it |
 | Player view | N/A | Own itemized contributions + outstanding |
 | Admin view | N/A | All members' itemized contributions + outstanding |
 
@@ -65,9 +65,10 @@ entirely new.
 
 - New Prisma model: membership/fee contribution (amount, date, period/tier
   reference, member reference, recorded-by Admin reference, timestamp).
-- `MembershipTier` gains a `feeAmount` field — this is the **same** schema
-  change called out in [Public Content & Static Info](./public-content.md);
-  land it once, referenced from both documents, not twice.
+- `MembershipTier` gains a `feeAmount` field — **done**. This was the
+  **same** schema change called out in
+  [Public Content & Static Info](./public-content.md); it landed once,
+  referenced from both documents, not twice.
 - Depends on [Account Management](./account-management.md)'s multi-role
   `User`/`Player` model being in place, since a contribution needs a stable
   member reference. See the build order in
@@ -82,7 +83,8 @@ document does not restate it beyond the acceptance criteria above.
 
 ## Proposed issues
 
-- [ ] **Add `feeAmount` to `MembershipTier`** — coordinate with [Public Content & Static Info](./public-content.md) so this lands once.
+- [x] **Add `feeAmount` to `MembershipTier`** — done, see
+      [Public Content & Static Info](./public-content.md#proposed-issues).
 - [ ] **Add a Prisma model for fee contributions** (amount, date, tier/period, member, recorded-by, timestamp).
 - [ ] **Build the outstanding-balance computation** (tier fee minus recorded contributions for the period).
 - [ ] **Admin dashboard: record a contribution for a member**.

@@ -62,7 +62,7 @@ a phone number changes).
 | Storage | `src/lib/data/club.json`, `roles.json`, `membership-tiers.json` (dev-edited, requires a deploy) | Prisma-backed, editable from the dashboard |
 | Editing | Developer only, via a JSON commit | Admin, via a CMS form in `/dashboard` |
 | Committee roles | Static list, no photos/contact per role | Unchanged in shape, just DB-backed |
-| Membership tiers | Description only, no fee amount | Gains a fee amount (shared dependency with [Membership & Fee Records](./membership-and-fees.md)) |
+| Membership tiers | Description + `feeAmount` (annual, EUR) — still JSON-backed, not yet Prisma | Prisma-backed, editable from the dashboard |
 
 ## Data model changes
 
@@ -89,7 +89,13 @@ this document does not restate it.
 ## Proposed issues
 
 - [ ] **Add `ClubInfo` and `ClubRole` Prisma models, migrate off JSON** — schema + migration + repository implementation swap, no page changes.
-- [ ] **Add `feeAmount` to `MembershipTier` and migrate off JSON** — coordinate with [Membership & Fee Records](./membership-and-fees.md) so this lands once.
+- [x] **Add `feeAmount` to `MembershipTier`** — landed directly on
+      `src/lib/data/membership-tiers.json` and the `MembershipTier` type
+      (annual amount, EUR), ahead of the Prisma migration below, since the
+      fee-records work needed the field before the full content migration
+      was ready.
+- [ ] **Migrate `MembershipTier` off JSON to Prisma** — split out from the
+      `feeAmount` issue above, which landed first without it.
 - [ ] **Admin CMS: edit club info** — dashboard form for mission/motto/values/contact fields.
 - [ ] **Admin CMS: manage committee roles** — create/edit/reorder/delete entries.
 - [ ] **Admin CMS: edit membership tier descriptions** — separate from the fee-amount field, which belongs to the fee-records work.

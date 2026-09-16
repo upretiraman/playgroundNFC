@@ -73,6 +73,10 @@ export interface MembershipTier {
   description: string;
   friendlies: string;
   tournaments: string;
+  // Annual fee in EUR. Basis for the outstanding-balance computation in
+  // the (not yet built) Membership & Fee Records capability — see
+  // docs/features/membership-and-fees.md.
+  feeAmount: number;
 }
 
 export type ProductCategory = "Cap" | "Tote Bag" | "T-Shirt";
