@@ -29,6 +29,7 @@ export default async function EventDetailPage({
   const eventTeam = event.team as TeamSlug | "both";
   const canView =
     user.roles.includes("ADMIN") ||
+    user.roles.includes("TRAINER") ||
     eventTeam === "both" ||
     user.team === eventTeam;
 

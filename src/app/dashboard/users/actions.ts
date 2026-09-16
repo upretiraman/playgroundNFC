@@ -34,9 +34,9 @@ function readRoleSet(actingUser: SessionUser, formData: FormData) {
   if (roles.includes("ADMIN") && !canManageAdmins(actingUser)) {
     throw new Error("Only a super-admin can grant the Administrator role.");
   }
-  const needsTeam = roles.includes("PLAYER") || roles.includes("TRAINER");
+  const needsTeam = roles.includes("PLAYER");
   if (needsTeam && !team) {
-    throw new Error("Team is required for Player and Trainer accounts");
+    throw new Error("Team is required for Player accounts");
   }
 
   return { roles, team: needsTeam ? team : null, needsTeam };

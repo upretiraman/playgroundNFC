@@ -87,7 +87,7 @@ doesn't exist yet).
 | Grant/revoke `isSuperAdmin` | **No** — DB/seed only | Yes, super-admin only |
 | Audit log writes on these mutations | **No** — log model doesn't exist yet | Yes |
 | Roster auto-create | N/A | Adding Player role auto-creates a `Player` row |
-| `User.team` | Required for Player/Trainer at creation | Meaningful only for Players (follows roster entry); dropped for Trainers |
+| `User.team` | Required for Player only; dropped for Trainers | Unchanged (still not tied to roster entry yet) |
 
 ## Data model changes
 
@@ -99,9 +99,11 @@ doesn't exist yet).
   (soft disable), `mustChangePassword: Boolean` (see
   [Auth & Account Access](./auth-and-account-access.md)).
 - `User.team` is dropped for Trainers (club-wide, see
-  [Event Scheduling & Attendance](./event-scheduling-and-attendance.md))
-  and becomes meaningful only for Players, whose team follows their roster
-  entry rather than being set independently.
+  [Event Scheduling & Attendance](./event-scheduling-and-attendance.md)) and
+  is now required only for Players. It still doesn't follow the roster entry
+  automatically — that part of the target (Player's team tracking their
+  `Player` row rather than being set independently) is still pending the
+  content migration to the DB.
 - New permission helper alongside `canManageTeam` in
   `src/lib/auth-helpers.ts` enforcing the `isSuperAdmin` checks, called from
   the server action layer, not only the page.
@@ -128,5 +130,5 @@ not restate the matrix, only the acceptance criteria that follow from it.
 - [x] **Build account deactivate/reactivate UI/action** (soft disable).
 - [ ] **Build UI to grant/revoke the `isSuperAdmin` flag**, with the lockout safeguard (can't zero out super-admins) — see [Super-admin](../roles/super-admin.md).
 - [ ] **Wire Player-role-add/remove to roster auto-create/unpublish** — coordinate with [Teams & Player Rosters](./teams-and-rosters.md).
-- [ ] **Drop the `team` field from Trainer account creation** — coordinate with [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
+- [x] **Drop the `team` field from Trainer account creation** — see [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
 - [ ] **Write audit-log entries for every account mutation above** — coordinate with [Audit Log](./audit-log.md) so the model lands before or alongside the first write.

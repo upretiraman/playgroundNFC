@@ -48,7 +48,7 @@ export default function EditUserForm({
     );
   }
 
-  const needsTeam = roles.includes("PLAYER") || roles.includes("TRAINER");
+  const needsTeam = roles.includes("PLAYER");
 
   return (
     <form

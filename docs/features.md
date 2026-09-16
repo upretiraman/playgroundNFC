@@ -18,7 +18,7 @@ document, Workitem).
 | [Teams & Player Rosters](features/teams-and-rosters.md) | Team/roster browsing, player profiles | Live browsing; roster auto-create/publish-gating is target only |
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
 | [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
-| [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live; Trainer de-scoping and Player schedule widening are target only |
+| [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping; Player schedule widening and attendance reports are target only |
 | [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable and multi-role; granting the super-admin flag from the dashboard and audit-log writes are target only |
 | [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Not built |
 | [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Not built |
@@ -43,9 +43,10 @@ News, Public Content migration).
    **done**, depended on `mustChangePassword` from step 2. Ships as
    sign-out-and-relogin after the change rather than an in-place redirect —
    see that document's Current vs. target for why.
-4. **Trainer de-scoping and Player schedule widening**
-   ([Event Scheduling & Attendance](features/event-scheduling-and-attendance.md)) —
-   depends on the `User.team` changes from step 2.
+4. ~~**Trainer de-scoping**~~ ([Event Scheduling & Attendance](features/event-scheduling-and-attendance.md)) —
+   **done.** Trainers are club-wide; `User.team` is now `null` for Trainer
+   accounts. **Player schedule widening** (same document) is still open —
+   `schedule/page.tsx` still scopes a Player's own view to `user.team`.
 5. **Player/roster auto-create and publish-gating**
    ([Teams & Player Rosters](features/teams-and-rosters.md)) — depends on
    the multi-role model from step 2.

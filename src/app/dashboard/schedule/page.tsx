@@ -13,7 +13,8 @@ export default async function SchedulePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const team = user.roles.includes("ADMIN") ? undefined : (user.team as TeamSlug);
+  const seesWholeClub = user.roles.includes("ADMIN") || user.roles.includes("TRAINER");
+  const team = seesWholeClub ? undefined : (user.team as TeamSlug);
   const events = await listEvents(team ?? undefined);
 
   const canCreate = user.roles.includes("TRAINER") || user.roles.includes("ADMIN");

@@ -54,9 +54,10 @@ below). Session user shape is `SessionUser` in `src/lib/auth-types.ts`:
   a public page behind login.
 - **Player**: read-only `/dashboard/schedule` scoped to their team, sees own
   attendance highlighted.
-- **Trainer**: create/edit events for their own team only
+- **Trainer**: club-wide — create/edit events for any team
   (`canManageTeam`/`canManageEventTeam` in `src/lib/auth-helpers.ts`), edit
-  training plans, mark attendance.
+  training plans, mark attendance. `team` is always `null` on a Trainer
+  account. Cannot create `team: "both"` (club-wide) events — Admin-only.
 - **Admin**: everything, any team, plus `/dashboard/users` to create
   accounts. Only Admins can manage `team: "both"` (club-wide) events.
 
@@ -73,12 +74,13 @@ created by `prisma/seed.ts`; everyone else is created from
 with one file per role under `docs/roles/`: `guest.md`, `player.md`,
 `trainer.md`, `admin.md`, `super-admin.md`) — read it before changing
 anything about roles, and treat it as the intent when the two disagree. It is
-a spec, not yet implemented; every page ends with a current-vs-target gap
-table, and the index carries a suggested build order. Headline
-differences: Trainers become club-wide (no `team` scoping), Players see the
-whole club schedule, account management grows edit/reset/soft-disable, a
-super-admin flag gates Admin-on-Admin management and the audit log, and public
-content moves out of JSON into the database.
+a spec, not yet fully implemented; every page ends with a current-vs-target
+gap table, and the index carries a suggested build order. Most of it landed
+already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
+and Trainer de-scoping (club-wide, no `team` scoping) are all built. Still
+open: Players seeing the whole club schedule (not just their own team),
+attendance reports, membership/fee records, the audit log, and moving public
+content out of JSON into the database.
 
 ## Known gotchas (hit these already — don't rediscover them)
 
@@ -108,10 +110,13 @@ content moves out of JSON into the database.
   against Turso, e.g. for a shared dev database or to reproduce a
   production-only issue.
 - **Disabled `<select>`/`<input>` elements are not included in FormData on
-  submit.** `NewEventForm.tsx`'s team selector is disabled for Trainers
-  (locked to their team) and pairs a disabled `<select>` (display only) with
-  a separate `<input type="hidden" name="team">` carrying the real value.
-  Follow this pattern for any other "locked" form field.
+  submit.** `NewEventForm.tsx` supports a "locked" team selector — a disabled
+  `<select>` (display only) paired with a separate
+  `<input type="hidden" name="team">` carrying the real value — for when
+  `teamOptions` has exactly one choice. No role is locked to one team today
+  (Trainer is club-wide), so this path is currently dead but kept for the
+  next role/case that needs it. Follow this pattern for any other "locked"
+  form field.
 - **Server Actions that call `redirect()` throw internally** — Next.js's
   redirect mechanism uses a thrown, digest-tagged error. If a client
   component wraps the action call in try/catch expecting to catch real

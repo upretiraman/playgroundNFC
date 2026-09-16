@@ -18,10 +18,9 @@ export async function requireRole(
   return user;
 }
 
-export function canManageTeam(user: SessionUser, team: "boys" | "girls") {
-  if (user.roles.includes("ADMIN")) return true;
-  if (user.roles.includes("TRAINER")) return user.team === team;
-  return false;
+/** Trainers are club-wide (see docs/roles/trainer.md) — any Trainer may manage any team. */
+export function canManageTeam(user: SessionUser) {
+  return user.roles.includes("ADMIN") || user.roles.includes("TRAINER");
 }
 
 /** Events with team "both" (club-wide) may only be managed by an Administrator. */
@@ -30,7 +29,7 @@ export function canManageEventTeam(
   team: "boys" | "girls" | "both"
 ) {
   if (team === "both") return user.roles.includes("ADMIN");
-  return canManageTeam(user, team);
+  return canManageTeam(user);
 }
 
 /** Creating, editing, disabling, or promoting another Admin — and granting/revoking
