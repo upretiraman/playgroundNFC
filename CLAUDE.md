@@ -52,8 +52,8 @@ below). Session user shape is `SessionUser` in `src/lib/auth-types.ts`:
 
 - **Guest** (no account): full read access to all public pages. Never gate
   a public page behind login.
-- **Player**: read-only `/dashboard/schedule` scoped to their team, sees own
-  attendance highlighted.
+- **Player**: read-only `/dashboard/schedule` showing the whole club's
+  schedule (both teams), sees own attendance highlighted.
 - **Trainer**: club-wide — create/edit events for any team
   (`canManageTeam`/`canManageEventTeam` in `src/lib/auth-helpers.ts`), edit
   training plans, mark attendance. `team` is always `null` on a Trainer
@@ -77,8 +77,8 @@ anything about roles, and treat it as the intent when the two disagree. It is
 a spec, not yet fully implemented; every page ends with a current-vs-target
 gap table, and the index carries a suggested build order. Most of it landed
 already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
-and Trainer de-scoping (club-wide, no `team` scoping) are all built. Still
-open: Players seeing the whole club schedule (not just their own team),
+Trainer de-scoping (club-wide, no `team` scoping), and Player schedule
+widening (whole club, not just their own team) are all built. Still open:
 attendance reports, membership/fee records, the audit log, and moving public
 content out of JSON into the database.
 
