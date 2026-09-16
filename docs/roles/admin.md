@@ -40,12 +40,14 @@ Admins manage all public website content from the dashboard:
   `/dashboard/club-info`
 - Committee roles — **built**: `/dashboard/committee` (create, edit,
   delete; display order set by an editable number, not drag-and-drop)
-- Membership tiers
+- Membership tiers — **built**: `/dashboard/membership-tiers` (create,
+  edit, delete)
 
 This is what moves the site off dev-edited JSON files; see
 [Data model consequences](../roles-and-permissions.md#data-model-consequences).
-Player profiles, news, club info, and committee roles have made that
-move; only membership tiers have not yet.
+Player profiles, news, club info, committee roles, and membership tiers
+have all made that move — the content migration this bullet list
+describes is complete.
 
 ## Records
 
@@ -93,7 +95,7 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Create other Admins | **No** — super-admin only | Unchanged |
 | Events | Full control, any team | Unchanged |
 | Club-wide events | Admin-only | Unchanged |
-| Public content | Player profiles: full CMS (`/dashboard/roster`) — create, edit, publish/unpublish. News: full CMS (`/dashboard/news`) — create, edit, delete. Club info: full CMS (`/dashboard/club-info`). Committee roles: full CMS (`/dashboard/committee`). Membership tiers: JSON files, dev-edited | Full CMS from the dashboard, for every content type |
+| Public content | All full CMS from the dashboard: player profiles (`/dashboard/roster`, create/edit/publish/unpublish), news (`/dashboard/news`), club info (`/dashboard/club-info`), committee roles (`/dashboard/committee`), membership tiers (`/dashboard/membership-tiers`) | Unchanged — content migration complete |
 | Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Fee records | Sees all, itemized (`/dashboard/fees`); manual entry, outstanding auto-computed | Unchanged |
 | Audit log | Covers accounts, events/attendance, roster CMS, and fee records (incl. super-admin actions) — **no access** to read it, super-admin only | Also covers the rest of the CMS once those write paths exist |

@@ -6,6 +6,7 @@ import playersData from "../src/lib/data/players.json";
 import newsData from "../src/lib/data/news.json";
 import clubData from "../src/lib/data/club.json";
 import rolesData from "../src/lib/data/roles.json";
+import membershipTiersData from "../src/lib/data/membership-tiers.json";
 
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL ?? "file:./dev.db",
@@ -173,6 +174,30 @@ async function main() {
         summary: r.summary,
         duties: r.duties.join("\n"),
         order: index,
+      },
+    });
+  }
+
+  const membershipTiers = membershipTiersData as Array<{
+    slug: string;
+    name: string;
+    description: string;
+    friendlies: string;
+    tournaments: string;
+    feeAmount: number;
+  }>;
+
+  for (const t of membershipTiers) {
+    await db.membershipTier.upsert({
+      where: { slug: t.slug },
+      update: {},
+      create: {
+        slug: t.slug,
+        name: t.name,
+        description: t.description,
+        friendlies: t.friendlies,
+        tournaments: t.tournaments,
+        feeAmount: t.feeAmount,
       },
     });
   }
