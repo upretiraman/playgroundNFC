@@ -6,13 +6,10 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import { repository } from "@/lib/repository";
 import type { TeamSlug } from "@/lib/types";
 
-export async function generateStaticParams() {
-  const players = await repository.getPlayers();
-  return players.map((player) => ({
-    team: player.team,
-    player: player.slug,
-  }));
-}
+// The roster comes from the Player DB table now, not a build-time JSON
+// file — this must stay dynamic (no generateStaticParams) so a newly
+// published or edited player shows up without a rebuild.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

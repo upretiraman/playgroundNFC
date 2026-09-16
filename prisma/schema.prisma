@@ -67,6 +67,25 @@ model Attendance {
   @@unique([eventId, playerSlug])
 }
 
+// A roster entry. Backed by the DB (migrated off src/lib/data/players.json)
+// so Admins can create/edit profiles from the dashboard. `published` gates
+// public visibility — see docs/roles/player.md and docs/roles/admin.md.
+model Player {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  team       String // "boys" | "girls"
+  name       String
+  number     Int
+  position   String // "Goalkeeper" | "Defender" | "Midfielder" | "Forward"
+  bio        String
+  joinedYear Int
+  hometown   String?
+  isCaptain  Boolean  @default(false)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model Product {
   id          String   @id @default(cuid())
   slug        String   @unique

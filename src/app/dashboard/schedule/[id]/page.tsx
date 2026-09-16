@@ -31,7 +31,9 @@ export default async function EventDetailPage({
   const canEdit = canManageEventTeam(user, eventTeam);
 
   const rosterTeam = eventTeam === "both" ? undefined : eventTeam;
-  const players = await repository.getPlayers(rosterTeam);
+  const players = await repository.getPlayers(rosterTeam, {
+    includeUnpublished: true,
+  });
   const playerBySlug = new Map(players.map((p) => [p.slug, p]));
 
   const attendanceRows = event.attendances
