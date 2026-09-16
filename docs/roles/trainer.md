@@ -75,17 +75,20 @@ outside the schedule and attendance.
 
 | | Today | Target |
 |---|---|---|
-| Team scope | One team, enforced by `canManageTeam` (`src/lib/auth-helpers.ts:21`) | Club-wide, any team |
-| `team` field | Required at account creation | Dropped |
-| Training sessions | Create/edit, own team | Create/edit, any team |
-| Games | Create/edit, own team | Create/edit, any team |
-| Cancel/delete events | Own team | Any team |
-| Club-wide events | Blocked (`canManageEventTeam:28`) | Unchanged — still blocked |
-| Attendance marking | Own team | Any team |
+| Team scope | Club-wide, any team (`canManageTeam`, `src/lib/auth-helpers.ts`) | Unchanged |
+| `team` field | Dropped — always `null` | Unchanged |
+| Training sessions | Create/edit, any team | Unchanged |
+| Games | Create/edit, any team | Unchanged |
+| Cancel/delete events | Not built for anyone yet | Any team |
+| Club-wide events | Blocked (`canManageEventTeam`) | Unchanged — still blocked |
+| Attendance marking | Any team | Unchanged |
 | Attendance reports | Do not exist | Can view |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
 | Roles | Can combine with Player/Admin | Unchanged |
 
-Removing team scoping touches `canManageTeam`, `canManageEventTeam`, the
-account creation form and action, and the `NewEventForm` "locked team" pattern
-that currently pairs a disabled `<select>` with a hidden input.
+Team scoping has been removed: `canManageTeam` no longer takes a team to
+compare against, the account creation/edit forms drop the team field once
+Trainer is selected, and `/dashboard/schedule/new` offers Trainers the same
+Boys/Girls choice as an Admin (minus the club-wide "both" option), rather than
+locking the `NewEventForm` select the way it still does for a single-option
+list.

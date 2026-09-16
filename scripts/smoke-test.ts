@@ -86,8 +86,7 @@ async function seedAccounts() {
     data: {
       email: creds.trainer.email,
       name: "Smoke Test Trainer",
-      roles: "TRAINER",
-      team: "boys",
+      roles: "TRAINER", // club-wide — no team field
       mustChangePassword: false,
       passwordHash: await bcrypt.hash(creds.trainer.password, 10),
     },
@@ -176,6 +175,13 @@ async function main() {
     let eventUrl = "";
     await step("trainer can log in", async () => {
       await login(trainerPage, creds.trainer.email, creds.trainer.password);
+    });
+    await step("trainer's team selector is not locked to one team (club-wide)", async () => {
+      await trainerPage.goto(`${BASE_URL}/dashboard/schedule/new`, { waitUntil: "networkidle" });
+      const isDisabled = await trainerPage.locator("#team").isDisabled();
+      if (isDisabled) {
+        throw new Error("trainer's team select is disabled — expected club-wide access to any team");
+      }
     });
     await step("trainer can schedule a training session", async () => {
       await trainerPage.goto(`${BASE_URL}/dashboard/schedule/new`, { waitUntil: "networkidle" });
