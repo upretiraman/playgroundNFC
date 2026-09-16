@@ -4,9 +4,9 @@ Not a separate role — a **flag on an Admin account**. `role` stays `"ADMIN"`;
 a boolean marks the holder as a super-admin.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: partially built** — the flag itself and Admin-on-Admin gating
-exist; granting/revoking it from the dashboard and the audit log do not.
-See [Current vs. target](#current-vs-target).
+**Status: mostly built** — the flag itself, Admin-on-Admin gating, and the
+audit log (`/dashboard/audit-log`) all exist; only granting/revoking the
+flag from the dashboard doesn't. See [Current vs. target](#current-vs-target).
 
 A super-admin holds **every [Admin](admin.md) permission**, plus the three
 below.
@@ -18,12 +18,14 @@ below.
 - **Grant the super-admin flag** to another Admin. Multiple super-admins may
   exist at once, deliberately: the club should never be one lost account away
   from an unmanageable site.
-- **View the audit log** of admin actions — covering every mutation an Admin
-  or super-admin can make: accounts, events, content, and fee records,
-  including super-admins' own actions. Each entry is a simple
-  who/action/target/when record (no before/after diff), retained
-  indefinitely. Restricting read access to super-admins keeps ordinary
-  Admins accountable to a smaller circle rather than to no one.
+- **View the audit log** (`/dashboard/audit-log`) of admin actions —
+  covering every mutation an Admin or super-admin can make: accounts,
+  events, content, and fee records, including super-admins' own actions.
+  Each entry is a simple who/action/target/when record (no before/after
+  diff), retained indefinitely. Restricting read access to super-admins
+  keeps ordinary Admins accountable to a smaller circle rather than to no
+  one. Covers Trainer-authored event/attendance mutations too, since they
+  flow through the same server actions as an Admin's.
 
 ## Where the flag comes from
 
@@ -70,19 +72,21 @@ three exclusive powers are enforced.
 | Admin-on-Admin gating | Yes — `canManageAdmins` in `src/lib/auth-helpers.ts`, re-checked in every account action (`src/app/dashboard/users/actions.ts`) | Unchanged |
 | Grant/revoke the flag | **No** — DB/seed only, no dashboard UI | Yes, super-admin only |
 | Lockout safeguard (can't zero out super-admins) | N/A — no UI to revoke it yet | Enforced when grant/revoke ships |
-| Audit log | Does not exist | Covers accounts, events, content, and fee records; super-admin-only read |
+| Audit log | Covers accounts, events/attendance, roster CMS, and fee records (incl. Trainer and super-admin actions); super-admin-only read (`/dashboard/audit-log`) | Also covers the rest of the CMS (news/club info/tiers) once those write paths exist |
 
 What shipped: the flag itself and the gating it exists for — an ordinary
 Admin cannot create, edit, reset, or deactivate a fellow Admin
 (`src/app/dashboard/users/actions.ts`'s `loadManageableTarget` /
 `readRoleSet` calls `canManageAdmins`), and the "Administrator" role
-checkbox is hidden from them in `NewUserForm`/`EditUserForm`.
+checkbox is hidden from them in `NewUserForm`/`EditUserForm`. Also
+shipped: the `AuditEntry` model and `/dashboard/audit-log` — see
+[Audit Log](../features/audit-log.md).
 
 What's left:
 
 1. UI for a super-admin to grant/revoke the flag on another Admin, plus the
    lockout safeguard (can't demote themselves or the last remaining
    super-admin to zero).
-2. An audit log model (actor, action, target, timestamp) written on every
-   Admin/super-admin mutation across accounts, events, content, and fee
-   records, with read access gated to super-admins.
+2. Audit-log coverage of the CMS mutations that don't exist yet (news,
+   club info, membership tiers are still JSON) and of super-admin
+   grant/revoke itself, once that UI ships.

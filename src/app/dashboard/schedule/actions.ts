@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { logAuditEntry } from "@/lib/audit";
 import { requireRole, canManageEventTeam } from "@/lib/auth-helpers";
 import { repository } from "@/lib/repository";
 import type { TeamSlug } from "@/lib/types";
@@ -67,6 +68,13 @@ export async function createEvent(formData: FormData) {
     },
   });
 
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.create",
+    targetType: "Event",
+    targetId: event.id,
+  });
+
   revalidatePath("/dashboard/schedule");
   return { id: event.id };
 }
@@ -81,6 +89,14 @@ export async function updatePlan(eventId: string, formData: FormData) {
 
   const plan = (formData.get("plan") as string) || null;
   await db.event.update({ where: { id: eventId }, data: { plan } });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.updatePlan",
+    targetType: "Event",
+    targetId: eventId,
+  });
+
   revalidatePath(`/dashboard/schedule/${eventId}`);
 }
 
@@ -103,10 +119,17 @@ export async function setAttendance(
     throw new Error("Invalid attendance status");
   }
 
-  await db.attendance.upsert({
+  const attendance = await db.attendance.upsert({
     where: { eventId_playerSlug: { eventId, playerSlug } },
     update: { status, note },
     create: { eventId, playerSlug, status, note },
+  });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "attendance.set",
+    targetType: "Attendance",
+    targetId: attendance.id,
   });
 
   revalidatePath(`/dashboard/schedule/${eventId}`);

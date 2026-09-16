@@ -128,6 +128,20 @@ export default async function DashboardPage() {
               </p>
             </Link>
           )}
+
+          {user.isSuperAdmin && (
+            <Link
+              href="/dashboard/audit-log"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Audit Log
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Who did what to what, and when.
+              </p>
+            </Link>
+          )}
         </div>
       </Container>
     </div>

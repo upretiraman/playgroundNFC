@@ -19,9 +19,9 @@ document, Workitem).
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
 | [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping and Player schedule widening; attendance reports are target only |
-| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable and multi-role; granting the super-admin flag from the dashboard and audit-log writes are target only |
-| [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Live (`/dashboard/fees`); writing to the audit log is target only |
-| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Not built |
+| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable, multi-role, and audit-log writes; granting the super-admin flag from the dashboard is target only |
+| [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Live (`/dashboard/fees`), including the audit-log write |
+| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Live (`/dashboard/audit-log`) for every write path that exists; super-admin grant/revoke and the rest of the CMS aren't write paths yet |
 
 ## Suggested build order
 
@@ -74,15 +74,16 @@ News, Public Content migration).
    form). Depended on step 2 (stable member reference — `Contribution`
    references `User.id` directly, not `Player.id`, since not every
    Player-role account has a linked roster entry) and step 6a
-   (`MembershipTier` fee amount), both done. **Not done**: writing to the
-   audit log (step 9) on every recorded contribution.
-9. **Audit log** ([Audit Log](features/audit-log.md)) — depends on steps
-   2, 4, 5, 6, and 8 existing as write paths to wire into. All of those
-   have landed (step 6 only partially — news/club-info/tiers are still
-   JSON, but that's fine since the audit log only needs *some* write paths
-   to exist, not all of content migration). Scope it to cover content and
-   fee mutations from the start rather than adding those later, per the
-   roles spec.
+   (`MembershipTier` fee amount), both done.
+9. ~~**Audit log**~~ ([Audit Log](features/audit-log.md)) — **done** for
+   every write path that exists today: `AuditEntry` model,
+   `src/lib/audit.ts`'s `logAuditEntry`, wired into account (step 2),
+   event/attendance (step 4), roster CMS (step 5), and contribution (step
+   8) mutations, plus `/dashboard/audit-log` (super-admin-only read).
+   Logs Trainer-authored event/attendance actions too, not just Admin's —
+   see that document's Out of scope for why. **Not covered**: super-admin
+   grant/revoke (no UI yet) and the rest of the CMS from step 6
+   (news/club-info/tiers — still JSON, no dashboard mutations to log).
 
 Two steps are worth calling out because they **reduce** existing access
 rather than extend it: step 1 removes ordinary Admins' ability to create

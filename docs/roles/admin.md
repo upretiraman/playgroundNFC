@@ -93,7 +93,7 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Public content | Player profiles: full CMS (`/dashboard/roster`) — create, edit, publish/unpublish. News, club info, membership tiers: JSON files, dev-edited | Full CMS from the dashboard, for every content type |
 | Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Fee records | Sees all, itemized (`/dashboard/fees`); manual entry, outstanding auto-computed | Unchanged |
-| Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
+| Audit log | Covers accounts, events/attendance, roster CMS, and fee records (incl. super-admin actions) — **no access** to read it, super-admin only | Also covers the rest of the CMS once those write paths exist |
 | Roles | Can combine with Trainer/Player | Unchanged |
 
 Losing the ability to create fellow Admins was a **reduction** from what the
