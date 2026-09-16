@@ -82,7 +82,7 @@ outside the schedule and attendance.
 | Cancel/delete events | Not built for anyone yet | Any team |
 | Club-wide events | Blocked (`canManageEventTeam`) | Unchanged — still blocked |
 | Attendance marking | Any team | Unchanged |
-| Attendance reports | Do not exist | Can view |
+| Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
 | Roles | Can combine with Player/Admin | Unchanged |
 

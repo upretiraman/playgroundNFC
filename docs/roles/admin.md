@@ -86,7 +86,7 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Events | Full control, any team | Unchanged |
 | Club-wide events | Admin-only | Unchanged |
 | Public content | JSON files, dev-edited | Full CMS from the dashboard |
-| Attendance reports | Do not exist | Can view |
+| Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Fee records | Do not exist | Sees all, itemized; manual entry, outstanding auto-computed |
 | Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
 | Roles | Can combine with Trainer/Player | Unchanged |

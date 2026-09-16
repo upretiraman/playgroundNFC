@@ -183,7 +183,7 @@ Per-role detail lives on each role page.
 | Public content | JSON files, dev-edited | DB-backed, Admin-edited |
 | Membership tiers | No fee amount | Fee amount per tier |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
-| Attendance reports | None | Trainer + Admin |
+| Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
 | Fee records | None | Manual entry; Admin sees all, member sees own itemized, outstanding auto-computed |
 | Audit log | None | Covers accounts, events, content, and fee-record changes (incl. super-admin actions); super-admin only can view |
 | Guest access | Full public read, names visible | Unchanged |
@@ -212,8 +212,13 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    `/dashboard/schedule/[id]` no longer scope by `user.team` for any
    authenticated role — every member sees the whole club's schedule.
    Attendance visibility (own record only) is unchanged.
-5. **Content migration to the DB** — the largest piece; unblocks roster
+5. ~~**Attendance reports**~~ — **done.** `/dashboard/attendance` (Trainer +
+   Admin, gated by `canManageTeam`) shows per-player and per-team attendance
+   counts and a present-rate (excluding unmarked sessions), with optional
+   team/date-range filters. See `src/lib/events.ts`'s
+   `listAttendanceForReport`.
+6. **Content migration to the DB** — the largest piece; unblocks roster
    auto-create, publish gating, the CMS, and membership tier fee amounts.
-6. **Attendance reports, fee records, audit log** — new features on top of the
-   migrated model. The audit log should be scoped to cover content and fee
-   mutations from the start, not bolted on later.
+7. **Fee records, audit log** — new features on top of the migrated model.
+   The audit log should be scoped to cover content and fee mutations from
+   the start, not bolted on later.
