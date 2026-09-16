@@ -21,6 +21,11 @@ libSQL/Turso, NextAuth (Auth.js) v5.
   one commit per logical change with a descriptive message, push after each.
   No PR unless explicitly asked. Never rewrite/force-push history on this
   branch without being asked.
+- **After implementing and testing a change, stop before opening a PR.**
+  Report what was built and how it was verified (build/lint/smoke test,
+  manual check), ask the user to verify it themselves, and only create a PR
+  once they say to go ahead — don't offer/create one proactively right after
+  finishing the work.
 - **After every change**, report the current git branch and the list of
   files changed (`git branch --show-current` + `git status`/`git diff
   --stat`) — even if nothing was actually committed. This applies whether
