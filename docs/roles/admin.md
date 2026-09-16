@@ -32,7 +32,7 @@ fellow Admins and reading the audit log, see [Super-admin](super-admin.md).
 
 Admins manage all public website content from the dashboard:
 
-- News articles
+- News articles — **built**: `/dashboard/news` (create, edit, delete)
 - Team rosters, including publishing or unpublishing auto-created entries
   — **built**: `/dashboard/roster` (see [Player](player.md))
 - Shop products
@@ -41,8 +41,8 @@ Admins manage all public website content from the dashboard:
 
 This is what moves the site off dev-edited JSON files; see
 [Data model consequences](../roles-and-permissions.md#data-model-consequences).
-Player profiles have made that move; news, club info, and membership tiers
-have not yet.
+Player profiles and news have made that move; club info, committee roles,
+and membership tiers have not yet.
 
 ## Records
 
@@ -90,7 +90,7 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Create other Admins | **No** — super-admin only | Unchanged |
 | Events | Full control, any team | Unchanged |
 | Club-wide events | Admin-only | Unchanged |
-| Public content | Player profiles: full CMS (`/dashboard/roster`) — create, edit, publish/unpublish. News, club info, membership tiers: JSON files, dev-edited | Full CMS from the dashboard, for every content type |
+| Public content | Player profiles: full CMS (`/dashboard/roster`) — create, edit, publish/unpublish. News: full CMS (`/dashboard/news`) — create, edit, delete. Club info, committee roles, membership tiers: JSON files, dev-edited | Full CMS from the dashboard, for every content type |
 | Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Fee records | Sees all, itemized (`/dashboard/fees`); manual entry, outstanding auto-computed | Unchanged |
 | Audit log | Covers accounts, events/attendance, roster CMS, and fee records (incl. super-admin actions) — **no access** to read it, super-admin only | Also covers the rest of the CMS once those write paths exist |

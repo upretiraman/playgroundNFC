@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import playersData from "../src/lib/data/players.json";
+import newsData from "../src/lib/data/news.json";
 
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL ?? "file:./dev.db",
@@ -86,6 +87,32 @@ async function main() {
         hometown: p.hometown ?? null,
         isCaptain: p.isCaptain ?? false,
         published: true,
+      },
+    });
+  }
+
+  const news = newsData as Array<{
+    slug: string;
+    title: string;
+    date: string;
+    summary: string;
+    body: string;
+    team?: string;
+    coverImage?: string;
+  }>;
+
+  for (const n of news) {
+    await db.newsItem.upsert({
+      where: { slug: n.slug },
+      update: {},
+      create: {
+        slug: n.slug,
+        title: n.title,
+        date: new Date(`${n.date}T00:00:00`),
+        summary: n.summary,
+        body: n.body,
+        team: n.team ?? null,
+        coverImage: n.coverImage ?? null,
       },
     });
   }

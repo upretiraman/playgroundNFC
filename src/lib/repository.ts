@@ -1,6 +1,5 @@
 import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
-import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
 import { db } from "./db";
@@ -82,14 +81,17 @@ class JsonClubRepository implements ClubRepository {
   }
 
   async getNews(team?: TeamSlug): Promise<NewsItem[]> {
-    const news = [...(newsJson as NewsItem[])].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-    return team ? news.filter((n) => n.team === team || n.team === "both") : news;
+    const news = await db.newsItem.findMany({
+      where: team ? { OR: [{ team }, { team: "both" }] } : undefined,
+      orderBy: { date: "desc" },
+    });
+    return news.map((n) => ({ ...n, date: n.date.toISOString() })) as NewsItem[];
   }
 
   async getNewsItem(slug: string): Promise<NewsItem | undefined> {
-    return (newsJson as NewsItem[]).find((n) => n.slug === slug);
+    const item = await db.newsItem.findUnique({ where: { slug } });
+    if (!item) return undefined;
+    return { ...item, date: item.date.toISOString() } as NewsItem;
   }
 
   async getClubRoles(): Promise<ClubRole[]> {

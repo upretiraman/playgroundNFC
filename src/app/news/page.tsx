@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "Updates, match results, and milestones from NFC Nürnberg's boys' and girls' teams.",
 };
 
+// News comes from the NewsItem DB table now, not a build-time JSON file —
+// this must stay dynamic so a newly published/edited/deleted article shows
+// up without a rebuild.
+export const dynamic = "force-dynamic";
+
 export default async function NewsPage() {
   const news = await repository.getNews();
 
