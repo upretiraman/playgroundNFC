@@ -57,6 +57,20 @@ export default async function DashboardPage() {
             </Link>
           )}
 
+          {(user.roles.includes("TRAINER") || user.roles.includes("ADMIN")) && (
+            <Link
+              href="/dashboard/attendance"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Attendance Reports
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Per-player and per-team attendance summaries.
+              </p>
+            </Link>
+          )}
+
           {user.roles.includes("ADMIN") && (
             <Link
               href="/dashboard/users"
