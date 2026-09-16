@@ -139,9 +139,14 @@ not yet support:
    because Admins now edit them from the dashboard and Player accounts
    auto-create roster entries. `src/lib/repository.ts` keeps its interface —
    only its implementation changes, so callers stay untouched. Shop products
-   are already in the DB.
-2. **`Player` becomes a table**, with a `published` flag driving public
-   visibility and a relation to the `User` who owns the login.
+   and, as of this migration, **players** are already in the DB; news, club
+   info, and membership tiers are still JSON.
+2. **`Player` becomes a table** — **done**, with a `published` flag driving
+   public visibility (`src/app/dashboard/roster/**`, Admin-only). Not yet
+   done: the relation to the `User` who owns the login, and auto-creating a
+   Player row when the Player role is added to an account — those still
+   depend on the account-management flow, which continues to link by the
+   loose `User.playerSlug` string today.
 3. **`User.team` is dropped for Trainers** (club-wide) and is meaningful only
    for Players, whose team follows their roster entry.
 4. **`User.role` becomes a set, not a single value.** An account can hold any
@@ -179,8 +184,8 @@ Per-role detail lives on each role page.
 | Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
 | Admin-manages-Admin | Super-admins only | Unchanged |
 | Passwords | Forced change after create/reset | Unchanged |
-| Roster link | Optional, picked from `players.json` | Auto-created/removed as Player role is added/removed, publish-gated |
-| Public content | JSON files, dev-edited | DB-backed, Admin-edited |
+| Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
+| Public content | Player profiles: DB-backed, Admin-edited (`/dashboard/roster`). News, club info, membership tiers: JSON files, dev-edited | DB-backed, Admin-edited, for all content types |
 | Membership tiers | No fee amount | Fee amount per tier |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
@@ -217,8 +222,23 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    counts and a present-rate (excluding unmarked sessions), with optional
    team/date-range filters. See `src/lib/events.ts`'s
    `listAttendanceForReport`.
-6. **Content migration to the DB** — the largest piece; unblocks roster
-   auto-create, publish gating, the CMS, and membership tier fee amounts.
-7. **Fee records, audit log** — new features on top of the migrated model.
+6. ~~**Player content migration**~~ — **done, partially.** `Player` is now a
+   Prisma model (`prisma/schema.prisma`) with a `published` flag, and
+   `/dashboard/roster` gives Admins a create/edit/publish CMS for it
+   (`src/app/dashboard/roster/**`). `src/lib/repository.ts`'s
+   `getPlayers`/`getPlayer` read from the DB, filtered to `published: true`
+   by default; internal dashboard callers (attendance, scheduling, account
+   linking) pass `{ includeUnpublished: true }` to see the full roster. The
+   public roster/player pages (`/teams`, `/teams/[team]`,
+   `/teams/[team]/[player]`) were switched to `force-dynamic` so publish/edit
+   changes show up without a rebuild. **Not done as part of this**: news,
+   club info, and membership tiers are still JSON; and the roster
+   auto-create/unpublish tied to adding/removing the Player role on an
+   account (`User.playerSlug` is still a loose string link, not a relation)
+   — see [Data model consequences](#data-model-consequences) item 2.
+7. **News, club info, membership tiers to the DB** — the remaining piece of
+   content migration, plus wiring roster auto-create into account role
+   changes.
+8. **Fee records, audit log** — new features on top of the migrated model.
    The audit log should be scoped to cover content and fee mutations from
    the start, not bolted on later.

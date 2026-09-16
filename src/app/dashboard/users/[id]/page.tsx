@@ -28,7 +28,7 @@ export default async function EditUserPage({
 
   const [target, players] = await Promise.all([
     db.user.findUnique({ where: { id } }),
-    repository.getPlayers(),
+    repository.getPlayers(undefined, { includeUnpublished: true }),
   ]);
   if (!target) notFound();
 

@@ -28,10 +28,10 @@ export interface Player {
   number: number;
   position: PlayerPosition;
   bio: string;
-  photoUrl?: string;
   joinedYear: number;
-  hometown?: string;
+  hometown?: string | null;
   isCaptain?: boolean;
+  published: boolean;
 }
 
 export interface NewsItem {

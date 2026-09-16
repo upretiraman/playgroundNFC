@@ -36,16 +36,26 @@ libSQL/Turso, NextAuth (Auth.js) v5.
 Two data layers, deliberately separate:
 
 1. **Static content** (`src/lib/data/*.json`, read via `src/lib/repository.ts`'s
-   `ClubRepository` interface) — club info, teams, players, news, membership
-   tiers, committee roles. Content editors change JSON; if this ever needs a
-   real CMS/DB, only `repository.ts`'s implementation changes, not callers.
+   `ClubRepository` interface) — club info, teams, news, membership tiers,
+   committee roles. Content editors change JSON; if this ever needs a real
+   CMS/DB, only `repository.ts`'s implementation changes, not callers.
+   **Player profiles are the exception** — they moved to the DB (see below);
+   `players.json` still exists only as the one-time seed source in
+   `prisma/seed.ts` and is no longer read at runtime.
 2. **Dynamic data** (Prisma + libSQL/Turso, `src/lib/db.ts` / `src/lib/events.ts`) —
-   user accounts, training/game events, attendance. This is what the member
-   area (`/login`, `/dashboard/**`) reads and writes, and what the public
-   `/`, `/training`, and `/contact` pages read (via `listUpcomingEvents`) so
-   Trainer-scheduled sessions show up on the public site without a rebuild.
-   Those three pages are `export const dynamic = "force-dynamic"` — don't
+   user accounts, training/game events, attendance, and player profiles
+   (`Player` model, `published` flag gates public visibility). This is what
+   the member area (`/login`, `/dashboard/**`) reads and writes, and what the
+   public `/`, `/training`, `/contact`, `/teams`, `/teams/[team]`, and
+   `/teams/[team]/[player]` pages read (via `listUpcomingEvents` and
+   `repository.getPlayers`/`getPlayer`) so Trainer-scheduled sessions and
+   Admin-edited player profiles show up on the public site without a
+   rebuild. Those pages are `export const dynamic = "force-dynamic"` — don't
    remove that or they'll freeze at build-time content again.
+   `repository.getPlayers`/`getPlayer` default to `published: true` only;
+   internal dashboard callers (attendance, scheduling, account linking) pass
+   `{ includeUnpublished: true }` to see the full roster — public pages must
+   never pass that.
 
 ### Auth & roles
 
@@ -82,10 +92,13 @@ anything about roles, and treat it as the intent when the two disagree. It is
 a spec, not yet fully implemented; every page ends with a current-vs-target
 gap table, and the index carries a suggested build order. Most of it landed
 already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
-Trainer de-scoping (club-wide, no `team` scoping), and Player schedule
-widening (whole club, not just their own team) are all built. Still open:
-attendance reports, membership/fee records, the audit log, and moving public
-content out of JSON into the database.
+Trainer de-scoping (club-wide, no `team` scoping), Player schedule widening
+(whole club, not just their own team), attendance reports
+(`/dashboard/attendance`), and the player-profile piece of the content
+migration (`Player` DB table + `/dashboard/roster` CMS) are all built. Still
+open: membership/fee records, the audit log, the rest of the content
+migration (news, club info, membership tiers still JSON), and wiring roster
+auto-create/unpublish into Player role changes on an account.
 
 ## Known gotchas (hit these already — don't rediscover them)
 
@@ -169,8 +182,12 @@ Useful scripts (see `package.json`): `db:migrate`, `db:seed`, `db:reset`
 
 - `src/lib/data/club.json` — mission, motto ("More Than a Club"), values
   (Pride/Passion/Unity), contact info.
-- `src/lib/data/teams.json`, `players.json` — rosters. Player photos are
-  generated initials avatars (`PlayerAvatar.tsx`), not real images.
+- `src/lib/data/teams.json` — the two teams (boys/girls), still JSON.
+  `src/lib/data/players.json` is the one-time seed source for the `Player`
+  DB table (`prisma/seed.ts` upserts it in, keyed by `slug`, on every seed
+  run) — edit it to seed new dev/test data, but real roster edits go through
+  `/dashboard/roster`, not this file. Player photos are generated initials
+  avatars (`PlayerAvatar.tsx`), not real images.
 - `src/lib/data/roles.json`, `membership-tiers.json` — sourced from the
   club's actual governance protocol PDF (`public/documents/`), surfaced on
   `/club`.
