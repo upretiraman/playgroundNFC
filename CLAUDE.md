@@ -94,11 +94,13 @@ gap table, and the index carries a suggested build order. Most of it landed
 already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
 Trainer de-scoping (club-wide, no `team` scoping), Player schedule widening
 (whole club, not just their own team), attendance reports
-(`/dashboard/attendance`), and the player-profile piece of the content
-migration (`Player` DB table + `/dashboard/roster` CMS) are all built. Still
-open: membership/fee records, the audit log, the rest of the content
-migration (news, club info, membership tiers still JSON), and wiring roster
-auto-create/unpublish into Player role changes on an account.
+(`/dashboard/attendance`), the player-profile piece of the content
+migration (`Player` DB table + `/dashboard/roster` CMS), and membership/fee
+records (`Contribution` DB table + `/dashboard/fees` and
+`/dashboard/fees/[id]`) are all built. Still open: the audit log
+(including writing an entry for each contribution recorded), the rest of
+the content migration (news, club info, membership tiers still JSON), and
+wiring roster auto-create/unpublish into Player role changes on an account.
 
 ## Known gotchas (hit these already — don't rediscover them)
 

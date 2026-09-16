@@ -88,7 +88,7 @@ multi-role account unpublishes but retains that roster entry.
 | Roster link | Optional, picked from a `Player` (DB) dropdown via `User.playerSlug` | Auto-created, publish-gated |
 | Roster storage / publish gate | `Player` DB table with a `published` flag; Admin CRUD at `/dashboard/roster` | Unchanged — auto-create on top of this is what's still missing |
 | Password | Forced change on first login and after reset | Unchanged |
-| Fee records | Do not exist | Sees own itemized record, outstanding auto-computed |
+| Fee records | Sees own itemized record, outstanding auto-computed (`/dashboard/fees`) | Unchanged |
 | Read-only | Yes | Unchanged |
 | Roles | Can combine with Trainer/Admin | Unchanged |
 

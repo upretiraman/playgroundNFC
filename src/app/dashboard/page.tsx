@@ -71,6 +71,22 @@ export default async function DashboardPage() {
             </Link>
           )}
 
+          {(user.roles.includes("PLAYER") || user.roles.includes("ADMIN")) && (
+            <Link
+              href="/dashboard/fees"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Fee Records
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                {user.roles.includes("ADMIN")
+                  ? "Record contributions and see every member's outstanding balance."
+                  : "See your contribution history and what's outstanding."}
+              </p>
+            </Link>
+          )}
+
           {user.roles.includes("ADMIN") && (
             <Link
               href="/dashboard/users"

@@ -111,10 +111,11 @@ Recorded by manual Admin entry — there is no payment processor integration.
 Each contribution carries an **amount**, a **date**, and the **period/tier**
 it covers. "Outstanding" is not entered by hand: it is computed as the
 tier's fee amount minus the contributions recorded for that period, so an
-Admin only ever enters what was actually paid. This requires each
-membership tier to carry a fee amount — `membership-tiers.json` now does
-(annual, EUR); the contribution-tracking and outstanding-balance logic
-itself is still not built.
+Admin only ever enters what was actually paid. **Built**: the `Contribution`
+model (`prisma/schema.prisma`), `/dashboard/fees`, and `/dashboard/fees/[id]`
+— see [Membership & Fee Records](features/membership-and-fees.md) for the
+detailed spec. Not built: writing an audit-log entry for each contribution
+recorded (the audit log itself doesn't exist yet).
 
 A Player sees an itemized list of their own contributions (not just a
 paid/outstanding summary); an Admin sees the same for every member.
@@ -192,7 +193,7 @@ Per-role detail lives on each role page.
 | Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
-| Fee records | None | Manual entry; Admin sees all, member sees own itemized, outstanding auto-computed |
+| Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed | Unchanged — only the audit-log write on each entry is still missing |
 | Audit log | None | Covers accounts, events, content, and fee-record changes (incl. super-admin actions); super-admin only can view |
 | Guest access | Full public read, names visible | Unchanged |
 
@@ -248,6 +249,13 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
 8. **News, club info, membership tiers to the DB** — the remaining piece of
    content migration, plus wiring roster auto-create into account role
    changes.
-9. **Fee records, audit log** — new features on top of the migrated model.
-   The audit log should be scoped to cover content and fee mutations from
-   the start, not bolted on later.
+9. ~~**Fee records**~~ — **done.** `Contribution` model, `/dashboard/fees`,
+   `/dashboard/fees/[id]` — see
+   [Membership & Fee Records](features/membership-and-fees.md). Did not
+   wait on step 8 (news/club-info/tiers to the DB); only needed the
+   `feeAmount` field from step 7 and a stable member reference, both
+   already in place.
+10. **Audit log** — the audit log should be scoped to cover content and
+    fee mutations from the start, not bolted on later — including the
+    fee-record write from step 9, which isn't wired in yet since the log
+    doesn't exist.

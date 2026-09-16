@@ -20,7 +20,7 @@ document, Workitem).
 | [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping and Player schedule widening; attendance reports are target only |
 | [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable and multi-role; granting the super-admin flag from the dashboard and audit-log writes are target only |
-| [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Not built |
+| [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Live (`/dashboard/fees`); writing to the audit log is target only |
 | [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Not built |
 
 ## Suggested build order
@@ -67,14 +67,22 @@ News, Public Content migration).
    just a new field on the existing JSON shape.
 7. **Shop permissions clarification** ([Shop](features/shop.md)) — no
    dependencies, low effort; slot in wherever convenient.
-8. **Membership & fee records** ([Membership & Fee Records](features/membership-and-fees.md)) —
-   depends on step 2 (stable member reference, done) and step 6a
-   (`MembershipTier` fee amount, done). The rest of step 6 (`MembershipTier`
-   moving off JSON to Prisma) is not a blocker for this.
+8. ~~**Membership & fee records**~~ ([Membership & Fee Records](features/membership-and-fees.md)) —
+   **done.** `Contribution` model, `/dashboard/fees` (Admin list of every
+   Player-role member + a Player's own itemized view) and
+   `/dashboard/fees/[id]` (Admin per-member detail + record-contribution
+   form). Depended on step 2 (stable member reference — `Contribution`
+   references `User.id` directly, not `Player.id`, since not every
+   Player-role account has a linked roster entry) and step 6a
+   (`MembershipTier` fee amount), both done. **Not done**: writing to the
+   audit log (step 9) on every recorded contribution.
 9. **Audit log** ([Audit Log](features/audit-log.md)) — depends on steps
-   2, 4, 5, 6, and 8 existing as write paths to wire into. Scope it to
-   cover content and fee mutations from the start rather than adding those
-   later, per the roles spec.
+   2, 4, 5, 6, and 8 existing as write paths to wire into. All of those
+   have landed (step 6 only partially — news/club-info/tiers are still
+   JSON, but that's fine since the audit log only needs *some* write paths
+   to exist, not all of content migration). Scope it to cover content and
+   fee mutations from the start rather than adding those later, per the
+   roles spec.
 
 Two steps are worth calling out because they **reduce** existing access
 rather than extend it: step 1 removes ordinary Admins' ability to create
