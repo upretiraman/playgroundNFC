@@ -7,7 +7,11 @@ without requiring a developer to ship a code change every time club info
 changes (a committee role-holder changes, the mission statement is reworded,
 a phone number changes).
 
-**Status**: Live, content is developer-edited JSON.
+**Status**: Club info and committee roles are DB-backed — `ClubInfo`
+(singleton) and `ClubRole` Prisma models, with an Admin CMS at
+`/dashboard/club-info` and `/dashboard/committee`. Membership tier
+*descriptions* are still JSON (only `feeAmount` has moved out, for the
+fee-records work).
 
 ## User stories
 
@@ -39,8 +43,13 @@ a phone number changes).
   session, falling back to a hardcoded venue string when no session exists.
 - Once Admin editing ships: edits to club info / committee roles / tier
   descriptions are visible on the public pages without a rebuild or deploy.
+  **Built for club info and committee roles** — `/`, `/club`, and
+  `/contact` are `force-dynamic`. Tier descriptions still require a JSON
+  commit + deploy, since `MembershipTier` hasn't moved to Prisma.
 - Only an Admin (not a Trainer or Player) can edit this content — see
-  [Permissions](#permissions).
+  [Permissions](#permissions). **Built** for club info and committee
+  roles: `/dashboard/club-info`, `/dashboard/committee`, and their actions
+  all redirect/reject anyone without the Admin role.
 
 ## Out of scope
 
@@ -59,25 +68,31 @@ a phone number changes).
 
 | Area | Today | Target |
 |---|---|---|
-| Storage | `src/lib/data/club.json`, `roles.json`, `membership-tiers.json` (dev-edited, requires a deploy) | Prisma-backed, editable from the dashboard |
-| Editing | Developer only, via a JSON commit | Admin, via a CMS form in `/dashboard` |
-| Committee roles | Static list, no photos/contact per role | Unchanged in shape, just DB-backed |
+| Storage | `ClubInfo` (singleton) and `ClubRole` Prisma models. `club.json`/`roles.json` remain only as the one-time seed source in `prisma/seed.ts`. `membership-tiers.json` is still dev-edited JSON. | `MembershipTier` moves to Prisma too |
+| Editing | Admin, via `/dashboard/club-info` and `/dashboard/committee` (club info + committee roles). Tier descriptions still need a JSON commit. | Admin, via a CMS form, for tier descriptions too |
+| Committee roles | Same shape as before, DB-backed, with an added `order` field (int) driving display order — reordering is done by editing that number, not drag-and-drop | Unchanged |
 | Membership tiers | Description + `feeAmount` (annual, EUR) — still JSON-backed, not yet Prisma | Prisma-backed, editable from the dashboard |
+| Audit log | Every club-info/committee-role mutation writes an entry (`clubInfo.update`/`role.create`/`role.update`/`role.delete`) | Unchanged |
 
 ## Data model changes
 
-- New Prisma models replacing `club.json`, `roles.json`: a singleton
-  `ClubInfo` record (or a small fixed-row table) and a `ClubRole` table
-  (slug, title, reportsTo, summary, duties).
-- `MembershipTier` becomes a Prisma model (today `membership-tiers.json`);
-  gains a `feeAmount` field. This table is shared with
-  [Membership & Fee Records](./membership-and-fees.md) — land the schema
-  change once, not twice.
+- **Built**: `ClubInfo` — a singleton row (fixed `id: "club-info"`, not a
+  fixed-row-count table pattern) replacing `club.json`: name, shortName,
+  foundedYear, city, country, motto, values (newline-separated — SQLite
+  has no array type), mission, email, instagram?, whatsapp?, address.
+- **Built**: `ClubRole` replacing `roles.json`: slug (unique), title,
+  reportsTo, summary, duties (newline-separated), order (Int, drives
+  display order; seeded from each entry's index in `roles.json`).
+- `MembershipTier` moving to a Prisma model (today `membership-tiers.json`)
+  is **not done** — out of scope for this round, tracked separately below.
+  It's shared with [Membership & Fee Records](./membership-and-fees.md) —
+  land the schema change once, not twice, when it's picked up.
 - `src/lib/repository.ts`'s `ClubRepository` interface (`getClubInfo`,
   `getClubRoles`, `getMembershipTiers`) is unchanged; only
-  `JsonClubRepository`'s implementation moves from JSON reads to Prisma
-  reads. Callers (`page.tsx`, `club/page.tsx`, `contact/page.tsx`) do not
-  change.
+  `JsonClubRepository`'s implementation moved from JSON reads to Prisma
+  reads for `getClubInfo`/`getClubRoles`. Callers (`page.tsx`,
+  `club/page.tsx`, `contact/page.tsx`) did not change — those pages and
+  `/club` switched to `force-dynamic` since they now read live DB data.
 
 ## Permissions
 
@@ -88,14 +103,14 @@ this document does not restate it.
 
 ## Proposed issues
 
-- [ ] **Add `ClubInfo` and `ClubRole` Prisma models, migrate off JSON** — schema + migration + repository implementation swap, no page changes.
+- [x] **Add `ClubInfo` and `ClubRole` Prisma models, migrate off JSON** — done; no page changes to the public pages beyond adding `force-dynamic`.
 - [x] **Add `feeAmount` to `MembershipTier`** — landed directly on
       `src/lib/data/membership-tiers.json` and the `MembershipTier` type
       (annual amount, EUR), ahead of the Prisma migration below, since the
       fee-records work needed the field before the full content migration
       was ready.
 - [ ] **Migrate `MembershipTier` off JSON to Prisma** — split out from the
-      `feeAmount` issue above, which landed first without it.
-- [ ] **Admin CMS: edit club info** — dashboard form for mission/motto/values/contact fields.
-- [ ] **Admin CMS: manage committee roles** — create/edit/reorder/delete entries.
-- [ ] **Admin CMS: edit membership tier descriptions** — separate from the fee-amount field, which belongs to the fee-records work.
+      `feeAmount` issue above, which landed first without it. Still open.
+- [x] **Admin CMS: edit club info** — dashboard form for mission/motto/values/contact fields — done, `/dashboard/club-info`.
+- [x] **Admin CMS: manage committee roles** — create/edit/delete entries, reordered by an editable `order` field — done, `/dashboard/committee`, `/dashboard/committee/new`, `/dashboard/committee/[id]`. No drag-and-drop reordering UI, per the "don't over-build this ahead of real usage" principle used elsewhere in these docs (e.g. the audit log's plain list) — an Admin retypes the number instead.
+- [ ] **Admin CMS: edit membership tier descriptions** — separate from the fee-amount field, which belongs to the fee-records work. Still open, blocked on the `MembershipTier` migration above.

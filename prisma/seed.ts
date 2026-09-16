@@ -4,6 +4,8 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import playersData from "../src/lib/data/players.json";
 import newsData from "../src/lib/data/news.json";
+import clubData from "../src/lib/data/club.json";
+import rolesData from "../src/lib/data/roles.json";
 
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL ?? "file:./dev.db",
@@ -113,6 +115,64 @@ async function main() {
         body: n.body,
         team: n.team ?? null,
         coverImage: n.coverImage ?? null,
+      },
+    });
+  }
+
+  const club = clubData as {
+    name: string;
+    shortName: string;
+    foundedYear: number;
+    city: string;
+    country: string;
+    motto: string;
+    values: string[];
+    mission: string;
+    email: string;
+    instagram?: string;
+    whatsapp?: string;
+    address: string;
+  };
+
+  await db.clubInfo.upsert({
+    where: { id: "club-info" },
+    update: {},
+    create: {
+      id: "club-info",
+      name: club.name,
+      shortName: club.shortName,
+      foundedYear: club.foundedYear,
+      city: club.city,
+      country: club.country,
+      motto: club.motto,
+      values: club.values.join("\n"),
+      mission: club.mission,
+      email: club.email,
+      instagram: club.instagram ?? null,
+      whatsapp: club.whatsapp ?? null,
+      address: club.address,
+    },
+  });
+
+  const roles = rolesData as Array<{
+    slug: string;
+    title: string;
+    reportsTo: string;
+    summary: string;
+    duties: string[];
+  }>;
+
+  for (const [index, r] of roles.entries()) {
+    await db.clubRole.upsert({
+      where: { slug: r.slug },
+      update: {},
+      create: {
+        slug: r.slug,
+        title: r.title,
+        reportsTo: r.reportsTo,
+        summary: r.summary,
+        duties: r.duties.join("\n"),
+        order: index,
       },
     });
   }

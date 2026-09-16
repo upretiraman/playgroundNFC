@@ -156,6 +156,44 @@ model MembershipTier {
   updatedAt   DateTime @updatedAt
 }
 
+// Club-wide info shown on the home/club/contact pages — a singleton row
+// (fixed id) rather than a fixed-schema table, since there is exactly one.
+// Backed by the DB (migrated off src/lib/data/club.json). See
+// docs/features/public-content.md.
+model ClubInfo {
+  id          String   @id @default("club-info")
+  name        String
+  shortName   String
+  foundedYear Int
+  city        String
+  country     String
+  motto       String
+  values      String // newline-separated — SQLite has no array type
+  mission     String
+  email       String
+  instagram   String?
+  whatsapp    String?
+  address     String
+  updatedAt   DateTime @updatedAt
+}
+
+// A committee role (Chair, Treasurer, Head Coach, etc.), shown on /club.
+// Backed by the DB (migrated off src/lib/data/roles.json). `order` drives
+// display order since it's not necessarily creation order — reordering is
+// done by editing this number, not a drag-and-drop UI (see
+// docs/features/public-content.md's Proposed issues).
+model ClubRole {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  reportsTo String
+  summary   String
+  duties    String // newline-separated — SQLite has no array type
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
   id          String   @id @default(cuid())
   slug        String   @unique

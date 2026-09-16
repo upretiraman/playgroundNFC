@@ -13,7 +13,7 @@ document, Workitem).
 
 | Capability | Summary | Status |
 |---|---|---|
-| [Public Content & Static Info](features/public-content.md) | Home, Club, Contact — mission, values, committee, membership tier descriptions | Live, JSON-backed |
+| [Public Content & Static Info](features/public-content.md) | Home, Club, Contact — mission, values, committee, membership tier descriptions | Live; club info + committee roles are DB-backed (`ClubInfo`/`ClubRole` + `/dashboard/club-info`/`/dashboard/committee`), membership tier descriptions still JSON |
 | [News](features/news.md) | Article listing + detail pages | Live, DB-backed (`NewsItem` + `/dashboard/news` CMS) |
 | [Teams & Player Rosters](features/teams-and-rosters.md) | Team/roster browsing, player profiles | Live, including the `Player` DB migration and Admin roster CMS; roster auto-create/unpublish on account role changes is target only |
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
@@ -21,7 +21,7 @@ document, Workitem).
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping and Player schedule widening; attendance reports are target only |
 | [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable, multi-role, and audit-log writes; granting the super-admin flag from the dashboard is target only |
 | [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Live (`/dashboard/fees`), including the audit-log write |
-| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Live (`/dashboard/audit-log`) for every write path that exists, including News; super-admin grant/revoke and the rest of Public Content aren't write paths yet |
+| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Live (`/dashboard/audit-log`) for every write path that exists, including News and club info/committee roles; super-admin grant/revoke and membership tiers aren't write paths yet |
 
 ## Suggested build order
 
@@ -58,11 +58,13 @@ News, Public Content migration).
 6. **Content migration to the database** ([Public Content & Static Info](features/public-content.md),
    [News](features/news.md)) — the largest single piece of work; mostly
    independent of steps 1–5, so it can run in parallel with them rather
-   than strictly after. Player profiles (step 5) and, as of this round,
-   **News** — `NewsItem` Prisma model + `/dashboard/news` CMS, `news.json`
-   demoted to a one-time seed source only — have made this move. Club info
-   and committee roles (`club.json`, `roles.json`) and `MembershipTier`
-   itself (aside from `feeAmount`, see step 6a) have not.
+   than strictly after. Player profiles (step 5), **News** (`NewsItem` +
+   `/dashboard/news`), and now **club info + committee roles**
+   (`ClubInfo` singleton + `ClubRole` Prisma models, `/dashboard/club-info`
+   and `/dashboard/committee` CMS) have made this move — `club.json` and
+   `roles.json` are demoted to one-time seed sources, same as
+   `players.json`/`news.json` before them. `MembershipTier` itself (aside
+   from `feeAmount`, see step 6a) has not.
 6a. ~~**`MembershipTier` fee amount**~~ — **done, ahead of step 6.**
    `membership-tiers.json` gained a `feeAmount` field (annual, EUR); it
    didn't need to wait on `MembershipTier` moving to Prisma, since it's
@@ -83,11 +85,11 @@ News, Public Content migration).
    event/attendance (step 4), roster CMS (step 5), and contribution (step
    8) mutations, plus `/dashboard/audit-log` (super-admin-only read).
    Logs Trainer-authored event/attendance actions too, not just Admin's —
-   see that document's Out of scope for why. Extended in step 6's News
-   migration to cover `news.create`/`news.update`/`news.delete` too.
-   **Not covered**: super-admin grant/revoke (no UI yet) and the rest of
-   Public Content's CMS from step 6 (club info/roles/tiers — still JSON,
-   no dashboard mutations to log).
+   see that document's Out of scope for why. Extended in step 6's content
+   migration to cover `news.create`/`news.update`/`news.delete`,
+   `clubInfo.update`, and `role.create`/`role.update`/`role.delete` too.
+   **Not covered**: super-admin grant/revoke (no UI yet) and membership
+   tiers (still JSON, no dashboard mutation to log).
 
 Two steps are worth calling out because they **reduce** existing access
 rather than extend it: step 1 removes ordinary Admins' ability to create
