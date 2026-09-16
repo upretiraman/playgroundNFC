@@ -74,7 +74,7 @@ multi-role account unpublishes but retains that roster entry.
 
 | | Today | Target |
 |---|---|---|
-| Schedule scope | Own team only (`src/app/dashboard/schedule/page.tsx:16`) | Whole club |
+| Schedule scope | Whole club (`src/app/dashboard/schedule/page.tsx`) | Unchanged |
 | Attendance visibility | Own record | Unchanged |
 | Roster link | Optional, picked from `players.json` dropdown | Auto-created, publish-gated |
 | Password | Forced change on first login and after reset | Unchanged |

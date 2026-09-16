@@ -173,7 +173,7 @@ Per-role detail lives on each role page.
 | Roles | A set — any combination, plus super-admin flag on Admin | Unchanged |
 | Trainer scope | Club-wide, no team (`canManageTeam`) | Unchanged |
 | Trainer `team` field | Dropped — always `null` | Unchanged |
-| Player schedule | Own team only (`schedule/page.tsx:16`) | Whole club |
+| Player schedule | Whole club (`schedule/page.tsx`) | Unchanged |
 | Admin over events | Full control of any team | Unchanged — full override |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
 | Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
@@ -208,7 +208,10 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    no longer checks `user.team`, the account creation/edit forms drop the team
    field for Trainer, and `/dashboard/schedule/new` offers any team (not
    locked to one). `User.team` is `null` for Trainer accounts going forward.
-4. **Player schedule widening** — a one-line scope change plus tests.
+4. ~~**Player schedule widening**~~ — **done.** `/dashboard/schedule` and
+   `/dashboard/schedule/[id]` no longer scope by `user.team` for any
+   authenticated role — every member sees the whole club's schedule.
+   Attendance visibility (own record only) is unchanged.
 5. **Content migration to the DB** — the largest piece; unblocks roster
    auto-create, publish gating, the CMS, and membership tier fee amounts.
 6. **Attendance reports, fee records, audit log** — new features on top of the

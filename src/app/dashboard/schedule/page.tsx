@@ -3,7 +3,6 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import { getSessionUser } from "@/lib/auth-helpers";
 import { listEvents } from "@/lib/events";
-import type { TeamSlug } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Schedule",
@@ -13,9 +12,8 @@ export default async function SchedulePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const seesWholeClub = user.roles.includes("ADMIN") || user.roles.includes("TRAINER");
-  const team = seesWholeClub ? undefined : (user.team as TeamSlug);
-  const events = await listEvents(team ?? undefined);
+  // Every member role sees the whole club's schedule — see docs/roles/player.md.
+  const events = await listEvents();
 
   const canCreate = user.roles.includes("TRAINER") || user.roles.includes("ADMIN");
 

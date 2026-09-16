@@ -205,6 +205,22 @@ async function main() {
       await row.locator('button[type="submit"]').click();
       await trainerPage.waitForTimeout(1000);
     });
+    let girlsEventId = "";
+    await step("trainer can schedule a session for a different team (club-wide)", async () => {
+      await trainerPage.goto(`${BASE_URL}/dashboard/schedule/new`, { waitUntil: "networkidle" });
+      await trainerPage.selectOption("#team", "girls");
+      const future = new Date();
+      future.setDate(future.getDate() + 15);
+      await trainerPage.fill("#date", future.toISOString().slice(0, 10));
+      await trainerPage.fill("#startTime", "18:00");
+      await trainerPage.fill("#endTime", "19:30");
+      await trainerPage.click('button[type="submit"]');
+      await trainerPage.waitForFunction(() => !location.pathname.endsWith("/new"), null, {
+        timeout: 10000,
+      });
+      girlsEventId = trainerPage.url().split("/").pop() ?? "";
+      if (girlsEventId) createdEventIds.push(girlsEventId);
+    });
     await trainerContext.close();
 
     // --- Player sees own schedule read-only ---
@@ -218,6 +234,13 @@ async function main() {
       const editButtons = await playerPage.locator('button:has-text("Save")').count();
       if (editButtons > 0) {
         throw new Error("player view unexpectedly has editable attendance controls");
+      }
+    });
+    await step("player sees the whole club's schedule, not just their own team", async () => {
+      await playerPage.goto(`${BASE_URL}/dashboard/schedule`, { waitUntil: "networkidle" });
+      const link = playerPage.locator(`a[href="/dashboard/schedule/${girlsEventId}"]`);
+      if ((await link.count()) === 0) {
+        throw new Error("player's schedule list is missing a girls-team event — expected whole-club visibility");
       }
     });
     await step("player is blocked from /dashboard/users", async () => {
