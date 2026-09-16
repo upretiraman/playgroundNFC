@@ -1,6 +1,5 @@
 import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
-import playersJson from "./data/players.json";
 import newsJson from "./data/news.json";
 import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
@@ -24,8 +23,19 @@ export interface ClubRepository {
   getClubInfo(): Promise<ClubInfo>;
   getTeams(): Promise<Team[]>;
   getTeam(slug: TeamSlug): Promise<Team | undefined>;
-  getPlayers(team?: TeamSlug): Promise<Player[]>;
-  getPlayer(slug: string): Promise<Player | undefined>;
+  /**
+   * `includeUnpublished` is for internal dashboard use (attendance,
+   * scheduling, linking a roster entry to an account) — public pages must
+   * leave it unset so an unpublished profile stays off the public site.
+   */
+  getPlayers(
+    team?: TeamSlug,
+    opts?: { includeUnpublished?: boolean }
+  ): Promise<Player[]>;
+  getPlayer(
+    slug: string,
+    opts?: { includeUnpublished?: boolean }
+  ): Promise<Player | undefined>;
   getNews(team?: TeamSlug): Promise<NewsItem[]>;
   getNewsItem(slug: string): Promise<NewsItem | undefined>;
   getClubRoles(): Promise<ClubRole[]>;
@@ -47,14 +57,28 @@ class JsonClubRepository implements ClubRepository {
     return (teamsJson as Team[]).find((t) => t.slug === slug);
   }
 
-  async getPlayers(team?: TeamSlug): Promise<Player[]> {
-    const players = playersJson as Player[];
-    const filtered = team ? players.filter((p) => p.team === team) : players;
-    return [...filtered].sort((a, b) => a.number - b.number);
+  async getPlayers(
+    team?: TeamSlug,
+    opts: { includeUnpublished?: boolean } = {}
+  ): Promise<Player[]> {
+    const players = await db.player.findMany({
+      where: {
+        ...(team ? { team } : {}),
+        ...(opts.includeUnpublished ? {} : { published: true }),
+      },
+      orderBy: { number: "asc" },
+    });
+    return players as Player[];
   }
 
-  async getPlayer(slug: string): Promise<Player | undefined> {
-    return (playersJson as Player[]).find((p) => p.slug === slug);
+  async getPlayer(
+    slug: string,
+    opts: { includeUnpublished?: boolean } = {}
+  ): Promise<Player | undefined> {
+    const player = await db.player.findUnique({ where: { slug } });
+    if (!player) return undefined;
+    if (!player.published && !opts.includeUnpublished) return undefined;
+    return player as Player;
   }
 
   async getNews(team?: TeamSlug): Promise<NewsItem[]> {

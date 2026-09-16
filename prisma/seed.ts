@@ -59,7 +59,36 @@ async function main() {
     });
   }
 
-  const players = playersData as Array<{ slug: string; team: string }>;
+  const players = playersData as Array<{
+    slug: string;
+    team: string;
+    name: string;
+    number: number;
+    position: string;
+    bio: string;
+    joinedYear: number;
+    hometown?: string;
+    isCaptain?: boolean;
+  }>;
+
+  for (const p of players) {
+    await db.player.upsert({
+      where: { slug: p.slug },
+      update: {},
+      create: {
+        slug: p.slug,
+        team: p.team,
+        name: p.name,
+        number: p.number,
+        position: p.position,
+        bio: p.bio,
+        joinedYear: p.joinedYear,
+        hometown: p.hometown ?? null,
+        isCaptain: p.isCaptain ?? false,
+        published: true,
+      },
+    });
+  }
 
   const boysTraining = await db.event.upsert({
     where: { id: "seed-boys-training" },

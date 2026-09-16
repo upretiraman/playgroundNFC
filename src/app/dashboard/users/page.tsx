@@ -27,7 +27,7 @@ export default async function UsersPage() {
 
   const [users, players] = await Promise.all([
     db.user.findMany({ orderBy: { createdAt: "asc" } }),
-    repository.getPlayers(),
+    repository.getPlayers(undefined, { includeUnpublished: true }),
   ]);
 
   return (

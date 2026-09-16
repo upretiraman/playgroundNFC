@@ -42,8 +42,8 @@ export async function createEvent(formData: FormData) {
 
   const players =
     team === "both"
-      ? await repository.getPlayers()
-      : await repository.getPlayers(team);
+      ? await repository.getPlayers(undefined, { includeUnpublished: true })
+      : await repository.getPlayers(team, { includeUnpublished: true });
 
   const event = await db.event.create({
     data: {

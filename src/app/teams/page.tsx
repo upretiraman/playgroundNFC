@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "Meet NFC Nürnberg's boys' and girls' teams — coaches, rosters, and how the squads came together.",
 };
 
+// Roster counts come from the Player DB table now, not a build-time JSON
+// file — this must stay dynamic so a newly published player shows up
+// without a rebuild.
+export const dynamic = "force-dynamic";
+
 export default async function TeamsPage() {
   const teams = await repository.getTeams();
   const players = await repository.getPlayers();

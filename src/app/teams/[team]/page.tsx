@@ -6,6 +6,11 @@ import PlayerAvatar from "@/components/PlayerAvatar";
 import { repository } from "@/lib/repository";
 import type { TeamSlug } from "@/lib/types";
 
+// The roster comes from the Player DB table now, not a build-time JSON
+// file — this must stay dynamic so a newly published player shows up
+// without a rebuild.
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const teams = await repository.getTeams();
   return teams.map((team) => ({ team: team.slug }));

@@ -57,7 +57,7 @@ export default async function AttendanceReportPage({
 
   const [attendances, players] = await Promise.all([
     listAttendanceForReport({ team, from, to }),
-    repository.getPlayers(),
+    repository.getPlayers(undefined, { includeUnpublished: true }),
   ]);
   const playerBySlug = new Map(players.map((p) => [p.slug, p]));
 
