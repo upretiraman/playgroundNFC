@@ -4,10 +4,10 @@ import { notFound } from "next/navigation";
 import Container from "@/components/Container";
 import { repository } from "@/lib/repository";
 
-export async function generateStaticParams() {
-  const news = await repository.getNews();
-  return news.map((item) => ({ slug: item.slug }));
-}
+// News comes from the NewsItem DB table now, not a build-time JSON file —
+// this must stay dynamic (no generateStaticParams) so a newly published,
+// edited, or deleted article shows up without a rebuild.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

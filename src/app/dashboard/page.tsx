@@ -117,6 +117,20 @@ export default async function DashboardPage() {
 
           {user.roles.includes("ADMIN") && (
             <Link
+              href="/dashboard/news"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Manage News
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Publish, edit, and remove news articles.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
               href="/dashboard/shop"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
             >

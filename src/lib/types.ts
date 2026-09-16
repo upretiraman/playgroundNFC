@@ -40,8 +40,8 @@ export interface NewsItem {
   date: string;
   summary: string;
   body: string;
-  team?: TeamSlug | "both";
-  coverImage?: string;
+  team?: TeamSlug | "both" | null;
+  coverImage?: string | null;
 }
 
 export interface ClubInfo {

@@ -122,6 +122,22 @@ model AuditEntry {
   createdAt  DateTime @default(now())
 }
 
+// A news article. Backed by the DB (migrated off src/lib/data/news.json)
+// so Admins can publish/edit/remove from the dashboard. See
+// docs/features/news.md.
+model NewsItem {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  date       DateTime
+  summary    String
+  body       String
+  team       String? // "boys" | "girls" | "both"
+  coverImage String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model Product {
   id          String   @id @default(cuid())
   slug        String   @unique

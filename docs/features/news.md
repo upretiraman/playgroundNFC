@@ -5,7 +5,8 @@ updates — separate from the training/game event system (an event is a
 scheduled session; a news item is a write-up about something that happened
 or was announced). Read-only for everyone but an Admin.
 
-**Status**: Live, content is developer-edited JSON.
+**Status**: Live, DB-backed — `NewsItem` Prisma model and an Admin CMS
+(`/dashboard/news`) to publish, edit, and delete articles.
 
 ## User stories
 
@@ -27,9 +28,13 @@ or was announced). Read-only for everyone but an Admin.
   slug 404s.
 - Home page teaser shows the 3 most recent articles (already implemented).
 - Once Admin publishing ships: a newly published article appears on `/news`
-  without a rebuild; a removed one disappears.
+  without a rebuild; a removed one disappears. **Built** — `/news` and
+  `/news/[slug]` are `force-dynamic`, so a create/edit/delete from
+  `/dashboard/news` shows up immediately, no rebuild.
 - Only an Admin can create, edit, or remove articles — Trainers and Players
-  have the same read-only view as Guests.
+  have the same read-only view as Guests. **Built** — `/dashboard/news`
+  and its actions (`createNewsArticle`/`updateNewsArticle`/
+  `deleteNewsArticle`) redirect/reject anyone without the Admin role.
 
 ## Out of scope
 
@@ -43,19 +48,22 @@ or was announced). Read-only for everyone but an Admin.
 
 | Area | Today | Target |
 |---|---|---|
-| Storage | `src/lib/data/news.json` (dev-edited, requires a deploy) | Prisma-backed |
-| Publishing | Developer only, via a JSON commit | Admin, via a dashboard form |
+| Storage | `NewsItem` Prisma model. `news.json` remains only as the one-time seed source in `prisma/seed.ts`, no longer read at runtime | Unchanged |
+| Publishing | Admin, via `/dashboard/news`'s dashboard form | Unchanged |
 | Article fields | slug, title, date, summary, body, team?, coverImage? | Unchanged shape |
+| Audit log | Every create/update/delete writes an entry (`news.create`/`news.update`/`news.delete`) | Unchanged |
 
 ## Data model changes
 
-- New Prisma `NewsItem` model replacing `news.json`: slug (unique), title,
-  date, summary, body, team (nullable, "boys" \| "girls" \| "both"),
-  coverImage (nullable).
+- **Built**: `NewsItem` Prisma model replacing `news.json` as the runtime
+  source: slug (unique), title, date, summary, body, team (nullable,
+  "boys" \| "girls" \| "both"), coverImage (nullable).
 - `ClubRepository.getNews()` / `getNewsItem()` interface is unchanged; only
-  `JsonClubRepository`'s implementation moves from JSON to Prisma. Callers
-  (`news/page.tsx`, `news/[slug]/page.tsx`, the home page teaser) do not
-  change.
+  `JsonClubRepository`'s implementation moved from JSON to Prisma. Callers
+  (`news/page.tsx`, `news/[slug]/page.tsx`, the home page teaser) did not
+  change — both public pages switched to `force-dynamic` since they now
+  read live DB data, per the "static rendering + live DB data don't mix"
+  gotcha in `CLAUDE.md`.
 
 ## Permissions
 
@@ -66,6 +74,6 @@ restate the rule.
 
 ## Proposed issues
 
-- [ ] **Add `NewsItem` Prisma model, migrate off JSON** — schema + migration + repository implementation swap.
-- [ ] **Admin dashboard: news list + create/edit form** — title, date, summary, body, team, cover image.
-- [ ] **Admin dashboard: delete/unpublish a news article**.
+- [x] **Add `NewsItem` Prisma model, migrate off JSON** — schema + migration + repository implementation swap — done.
+- [x] **Admin dashboard: news list + create/edit form** — title, date, summary, body, team, cover image — done, `/dashboard/news`, `/dashboard/news/new`, `/dashboard/news/[id]`.
+- [x] **Admin dashboard: delete/unpublish a news article** — done as a hard delete (no `published`/draft field in the data model above, so there's nothing to unpublish — deleting is the removal action).
