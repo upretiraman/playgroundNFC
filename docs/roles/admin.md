@@ -50,7 +50,9 @@ have not yet.
 - **Membership/fee contribution records** for all members, entered manually
   — amount, date, and period/tier per contribution. Outstanding is computed
   automatically from the tier's fee, not entered by hand. Sees an itemized
-  view per member, the same shape a member sees for themselves.
+  view per member, the same shape a member sees for themselves. Built:
+  `/dashboard/fees` (list of every Player-role member) and
+  `/dashboard/fees/[id]` (itemized view + record-contribution form).
 
 ## Multi-role
 
@@ -90,7 +92,7 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Club-wide events | Admin-only | Unchanged |
 | Public content | Player profiles: full CMS (`/dashboard/roster`) — create, edit, publish/unpublish. News, club info, membership tiers: JSON files, dev-edited | Full CMS from the dashboard, for every content type |
 | Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
-| Fee records | Do not exist | Sees all, itemized; manual entry, outstanding auto-computed |
+| Fee records | Sees all, itemized (`/dashboard/fees`); manual entry, outstanding auto-computed | Unchanged |
 | Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
 | Roles | Can combine with Trainer/Player | Unchanged |
 

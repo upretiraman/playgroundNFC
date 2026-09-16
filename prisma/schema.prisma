@@ -31,8 +31,10 @@ model User {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  createdEvents Event[]
-  products      Product[]
+  createdEvents         Event[]
+  products              Product[]
+  contributions         Contribution[] @relation("MemberContributions")
+  recordedContributions Contribution[] @relation("RecordedContributions")
 }
 
 model Event {
@@ -84,6 +86,24 @@ model Player {
   published  Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// A membership fee contribution — manual Admin entry, no payment processor.
+// Append-only: no update/delete action exists (see
+// docs/features/membership-and-fees.md's Out of scope). Outstanding for a
+// (member, tier, period) combination is computed, never stored: tier's
+// feeAmount minus the sum of contributions recorded for that combination.
+model Contribution {
+  id           String   @id @default(cuid())
+  member       User     @relation("MemberContributions", fields: [memberId], references: [id])
+  memberId     String
+  amount       Float
+  date         DateTime
+  tierSlug     String // MembershipTier.slug (src/lib/data/membership-tiers.json)
+  periodYear   Int // the annual membership period this contribution counts toward
+  recordedBy   User     @relation("RecordedContributions", fields: [recordedById], references: [id])
+  recordedById String
+  createdAt    DateTime @default(now())
 }
 
 model Product {
