@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { logAuditEntry } from "@/lib/audit";
 import { requireRole } from "@/lib/auth-helpers";
 import { parseRoles } from "@/lib/auth-types";
 import { repository } from "@/lib/repository";
@@ -39,7 +40,7 @@ export async function createContribution(memberId: string, formData: FormData) {
     throw new Error("Invalid membership tier");
   }
 
-  await db.contribution.create({
+  const contribution = await db.contribution.create({
     data: {
       memberId,
       amount,
@@ -48,6 +49,13 @@ export async function createContribution(memberId: string, formData: FormData) {
       periodYear,
       recordedById: admin.id,
     },
+  });
+
+  await logAuditEntry({
+    actorId: admin.id,
+    action: "contribution.create",
+    targetType: "Contribution",
+    targetId: contribution.id,
   });
 
   revalidatePath(`/dashboard/fees/${memberId}`);

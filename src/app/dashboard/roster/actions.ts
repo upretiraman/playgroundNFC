@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { logAuditEntry } from "@/lib/audit";
 import { requireRole } from "@/lib/auth-helpers";
 import type { PlayerPosition, TeamSlug } from "@/lib/types";
 
@@ -57,7 +58,7 @@ function playerFields(formData: FormData) {
 }
 
 export async function createPlayer(formData: FormData) {
-  await requireRole(["ADMIN"]);
+  const actingUser = await requireRole(["ADMIN"]);
   const fields = playerFields(formData);
   const slugInput = (formData.get("slug") as string)?.trim();
   const slug = slugify(slugInput || `${fields.team}-${fields.name}`);
@@ -73,16 +74,30 @@ export async function createPlayer(formData: FormData) {
 
   const player = await db.player.create({ data: { ...fields, slug } });
 
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "player.create",
+    targetType: "Player",
+    targetId: player.id,
+  });
+
   revalidatePath("/dashboard/roster");
   revalidatePath("/teams");
   return { id: player.id };
 }
 
 export async function updatePlayer(id: string, formData: FormData) {
-  await requireRole(["ADMIN"]);
+  const actingUser = await requireRole(["ADMIN"]);
   const fields = playerFields(formData);
 
   await db.player.update({ where: { id }, data: fields });
+
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "player.update",
+    targetType: "Player",
+    targetId: id,
+  });
 
   revalidatePath("/dashboard/roster");
   revalidatePath("/teams");
@@ -90,8 +105,15 @@ export async function updatePlayer(id: string, formData: FormData) {
 }
 
 export async function setPlayerPublished(id: string, published: boolean) {
-  await requireRole(["ADMIN"]);
+  const actingUser = await requireRole(["ADMIN"]);
   await db.player.update({ where: { id }, data: { published } });
+
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "player.setPublished",
+    targetType: "Player",
+    targetId: id,
+  });
 
   revalidatePath("/dashboard/roster");
   revalidatePath("/teams");

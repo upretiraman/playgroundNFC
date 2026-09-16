@@ -95,12 +95,16 @@ already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
 Trainer de-scoping (club-wide, no `team` scoping), Player schedule widening
 (whole club, not just their own team), attendance reports
 (`/dashboard/attendance`), the player-profile piece of the content
-migration (`Player` DB table + `/dashboard/roster` CMS), and membership/fee
+migration (`Player` DB table + `/dashboard/roster` CMS), membership/fee
 records (`Contribution` DB table + `/dashboard/fees` and
-`/dashboard/fees/[id]`) are all built. Still open: the audit log
-(including writing an entry for each contribution recorded), the rest of
-the content migration (news, club info, membership tiers still JSON), and
-wiring roster auto-create/unpublish into Player role changes on an account.
+`/dashboard/fees/[id]`), and the audit log (`AuditEntry` model +
+`src/lib/audit.ts`'s `logAuditEntry`, wired into every mutating action
+above, plus `/dashboard/audit-log`, super-admin-only) are all built. Still
+open: granting/revoking the super-admin flag from the dashboard, the rest
+of the content migration (news, club info, membership tiers still JSON —
+and the audit log doesn't cover their CMS mutations either, since none
+exist yet), and wiring roster auto-create/unpublish into Player role
+changes on an account.
 
 ## Known gotchas (hit these already — don't rediscover them)
 

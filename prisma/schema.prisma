@@ -35,6 +35,7 @@ model User {
   products              Product[]
   contributions         Contribution[] @relation("MemberContributions")
   recordedContributions Contribution[] @relation("RecordedContributions")
+  auditEntries          AuditEntry[]
 }
 
 model Event {
@@ -104,6 +105,21 @@ model Contribution {
   recordedBy   User     @relation("RecordedContributions", fields: [recordedById], references: [id])
   recordedById String
   createdAt    DateTime @default(now())
+}
+
+// Who did what to what, and when — no before/after diff by design (see
+// docs/features/audit-log.md's Out of scope). Covers every Admin/
+// super-admin mutation across accounts, events, content, and fee records.
+// Read access is super-admin only (src/app/dashboard/audit-log/page.tsx);
+// entries are retained indefinitely, no pruning.
+model AuditEntry {
+  id         String   @id @default(cuid())
+  actor      User     @relation(fields: [actorId], references: [id])
+  actorId    String
+  action     String // e.g. "user.create", "event.setAttendance", "player.setPublished", "contribution.create"
+  targetType String // "User" | "Event" | "Attendance" | "Player" | "Contribution"
+  targetId   String
+  createdAt  DateTime @default(now())
 }
 
 model Product {

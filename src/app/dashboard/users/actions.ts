@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { logAuditEntry } from "@/lib/audit";
 import { canManageAdmins, requireRole } from "@/lib/auth-helpers";
 import {
   parseRoles,
@@ -74,7 +75,7 @@ export async function createUser(formData: FormData) {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  await db.user.create({
+  const created = await db.user.create({
     data: {
       name,
       email,
@@ -84,6 +85,13 @@ export async function createUser(formData: FormData) {
       playerSlug: roles.includes("PLAYER") ? playerSlug : null,
       mustChangePassword: true,
     },
+  });
+
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "user.create",
+    targetType: "User",
+    targetId: created.id,
   });
 
   revalidatePath("/dashboard/users");
@@ -116,6 +124,13 @@ export async function updateUser(userId: string, formData: FormData) {
     },
   });
 
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "user.update",
+    targetType: "User",
+    targetId: userId,
+  });
+
   revalidatePath("/dashboard/users");
   revalidatePath(`/dashboard/users/${userId}`);
 }
@@ -134,6 +149,13 @@ export async function resetUserPassword(userId: string): Promise<string> {
     data: { passwordHash, mustChangePassword: true },
   });
 
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "user.resetPassword",
+    targetType: "User",
+    targetId: userId,
+  });
+
   revalidatePath(`/dashboard/users/${userId}`);
   return tempPassword;
 }
@@ -147,6 +169,13 @@ export async function setUserActive(userId: string, isActive: boolean) {
   await loadManageableTarget(actingUser, userId);
 
   await db.user.update({ where: { id: userId }, data: { isActive } });
+
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: "user.setActive",
+    targetType: "User",
+    targetId: userId,
+  });
 
   revalidatePath("/dashboard/users");
   revalidatePath(`/dashboard/users/${userId}`);

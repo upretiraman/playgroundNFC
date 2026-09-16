@@ -114,8 +114,7 @@ tier's fee amount minus the contributions recorded for that period, so an
 Admin only ever enters what was actually paid. **Built**: the `Contribution`
 model (`prisma/schema.prisma`), `/dashboard/fees`, and `/dashboard/fees/[id]`
 — see [Membership & Fee Records](features/membership-and-fees.md) for the
-detailed spec. Not built: writing an audit-log entry for each contribution
-recorded (the audit log itself doesn't exist yet).
+detailed spec, including the audit-log write on every contribution recorded.
 
 A Player sees an itemized list of their own contributions (not just a
 paid/outstanding summary); an Admin sees the same for every member.
@@ -128,6 +127,18 @@ exempted. Each entry is a simple record of who did what to what target and
 when. It does not store a before/after diff of the changed values. Entries
 are retained indefinitely. Restricted to super-admins to read; see
 [Super-admin](roles/super-admin.md).
+
+**Built**: `AuditEntry` model, `src/lib/audit.ts`'s `logAuditEntry`, wired
+into every mutating server action that exists today (accounts, events,
+attendance, roster CMS, contributions), plus `/dashboard/audit-log`
+(super-admin-only). Also logs Trainer-authored event/attendance actions,
+not just Admin's — those flow through the exact same server actions
+(`canManageTeam` covers both roles), and branching the write on actor role
+would add complexity for no benefit; see
+[Audit Log](features/audit-log.md)'s Out of scope. Not built: writing an
+entry for super-admin grant/revoke (that UI doesn't exist yet) and for the
+rest of the CMS (news/club info/membership tiers — still JSON, no
+dashboard mutations to log).
 
 ---
 
@@ -193,8 +204,8 @@ Per-role detail lives on each role page.
 | Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
-| Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed | Unchanged — only the audit-log write on each entry is still missing |
-| Audit log | None | Covers accounts, events, content, and fee-record changes (incl. super-admin actions); super-admin only can view |
+| Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed; audit-logged | Unchanged |
+| Audit log | Covers accounts, events/attendance, roster CMS, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Also covers super-admin grant/revoke and the rest of the CMS, once those write paths exist |
 | Guest access | Full public read, names visible | Unchanged |
 
 Two rows are worth calling out because they **reduce** existing access rather
@@ -210,9 +221,9 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
 2. ~~**Multi-role account model**~~ — **done.** `User.roles` is a
    comma-separated set (`PLAYER`/`TRAINER`/`ADMIN` in any combination),
    plus the `isActive` and `mustChangePassword` fields and the account
-   edit/reset/disable UI at `/dashboard/users/[id]`. Not done: writing to
-   an audit log on these mutations (the log itself doesn't exist yet — see
-   step 6), and any UI to grant/revoke `isSuperAdmin` (still DB/seed-only).
+   edit/reset/disable UI at `/dashboard/users/[id]`. Audit-log writes on
+   these mutations landed in step 10 below. Not done: any UI to
+   grant/revoke `isSuperAdmin` (still DB/seed-only).
 3. ~~**Trainer de-scoping**~~ — **done.** Trainers are club-wide: `canManageTeam`
    no longer checks `user.team`, the account creation/edit forms drop the team
    field for Trainer, and `/dashboard/schedule/new` offers any team (not
@@ -255,7 +266,10 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    wait on step 8 (news/club-info/tiers to the DB); only needed the
    `feeAmount` field from step 7 and a stable member reference, both
    already in place.
-10. **Audit log** — the audit log should be scoped to cover content and
-    fee mutations from the start, not bolted on later — including the
-    fee-record write from step 9, which isn't wired in yet since the log
-    doesn't exist.
+10. ~~**Audit log**~~ — **done**, scoped to cover every write path that
+    exists today rather than bolting content/fee mutations on later:
+    `AuditEntry` model, `logAuditEntry` helper, wired into accounts
+    (step 2), events/attendance (step 4), roster CMS (step 5), and the
+    step 9 fee-record write — see [Audit Log](features/audit-log.md).
+    Not covered yet: super-admin grant/revoke (no UI) and the rest of the
+    content-migration CMS from step 8.
