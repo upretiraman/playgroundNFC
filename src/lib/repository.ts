@@ -1,6 +1,4 @@
-import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
-import rolesJson from "./data/roles.json";
 import membershipTiersJson from "./data/membership-tiers.json";
 import { db } from "./db";
 import type {
@@ -45,7 +43,15 @@ export interface ClubRepository {
 
 class JsonClubRepository implements ClubRepository {
   async getClubInfo(): Promise<ClubInfo> {
-    return clubJson as ClubInfo;
+    const club = await db.clubInfo.findUniqueOrThrow({
+      where: { id: "club-info" },
+    });
+    return {
+      ...club,
+      values: club.values.split("\n").filter(Boolean),
+      instagram: club.instagram ?? undefined,
+      whatsapp: club.whatsapp ?? undefined,
+    } as ClubInfo;
   }
 
   async getTeams(): Promise<Team[]> {
@@ -95,7 +101,11 @@ class JsonClubRepository implements ClubRepository {
   }
 
   async getClubRoles(): Promise<ClubRole[]> {
-    return rolesJson as ClubRole[];
+    const roles = await db.clubRole.findMany({ orderBy: { order: "asc" } });
+    return roles.map((r) => ({
+      ...r,
+      duties: r.duties.split("\n").filter(Boolean),
+    })) as ClubRole[];
   }
 
   async getMembershipTiers(): Promise<MembershipTier[]> {

@@ -36,28 +36,38 @@ libSQL/Turso, NextAuth (Auth.js) v5.
 Two data layers, deliberately separate:
 
 1. **Static content** (`src/lib/data/*.json`, read via `src/lib/repository.ts`'s
-   `ClubRepository` interface) — club info, teams, membership tiers,
-   committee roles. Content editors change JSON; if this ever needs a real
-   CMS/DB, only `repository.ts`'s implementation changes, not callers.
-   **Player profiles and news are the exceptions** — they moved to the DB
-   (see below); `players.json`/`news.json` still exist only as one-time
-   seed sources in `prisma/seed.ts` and are no longer read at runtime.
+   `ClubRepository` interface) — teams, membership tiers. Content editors
+   change JSON; if this ever needs a real CMS/DB, only `repository.ts`'s
+   implementation changes, not callers. **Player profiles, news, club info,
+   and committee roles are the exceptions** — they moved to the DB (see
+   below); `players.json`/`news.json`/`club.json`/`roles.json` still exist
+   only as one-time seed sources in `prisma/seed.ts` and are no longer read
+   at runtime.
 2. **Dynamic data** (Prisma + libSQL/Turso, `src/lib/db.ts` / `src/lib/events.ts`) —
    user accounts, training/game events, attendance, player profiles
-   (`Player` model, `published` flag gates public visibility), and news
-   articles (`NewsItem` model). This is what the member area (`/login`,
+   (`Player` model, `published` flag gates public visibility), news
+   articles (`NewsItem` model), club info (`ClubInfo`, a singleton row —
+   fixed `id: "club-info"`), and committee roles (`ClubRole`, `order`
+   field drives display order). This is what the member area (`/login`,
    `/dashboard/**`) reads and writes, and what the public `/`, `/training`,
-   `/contact`, `/teams`, `/teams/[team]`, `/teams/[team]/[player]`, `/news`,
-   and `/news/[slug]` pages read (via `listUpcomingEvents` and
-   `repository.getPlayers`/`getPlayer`/`getNews`/`getNewsItem`) so
-   Trainer-scheduled sessions, Admin-edited player profiles, and
-   Admin-published news show up on the public site without a rebuild.
+   `/contact`, `/club`, `/teams`, `/teams/[team]`, `/teams/[team]/[player]`,
+   `/news`, and `/news/[slug]` pages read (via `listUpcomingEvents` and
+   `repository.getPlayers`/`getPlayer`/`getNews`/`getNewsItem`/
+   `getClubInfo`/`getClubRoles`) so Trainer-scheduled sessions and
+   Admin-edited content show up on the public site without a rebuild.
    Those pages are `export const dynamic = "force-dynamic"` — don't
-   remove that or they'll freeze at build-time content again.
+   remove that or they'll freeze at build-time content again. Since
+   `Footer.tsx` calls `getClubInfo()` and renders on every page via the
+   root layout, the three remaining statically-rendered routes
+   (`/login`, `/shop`, `/_not-found`) can show a stale footer until the
+   next deploy — a pre-existing characteristic (`/shop` already read
+   DB-backed `Product` data the same way before this), not something to
+   "fix" by making those routes dynamic too.
    `repository.getPlayers`/`getPlayer` default to `published: true` only;
    internal dashboard callers (attendance, scheduling, account linking) pass
    `{ includeUnpublished: true }` to see the full roster — public pages must
-   never pass that. `NewsItem` has no such flag — every row is public.
+   never pass that. `NewsItem`/`ClubInfo`/`ClubRole` have no such flag —
+   every row is public.
 
 ### Auth & roles
 
@@ -96,18 +106,19 @@ gap table, and the index carries a suggested build order. Most of it landed
 already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
 Trainer de-scoping (club-wide, no `team` scoping), Player schedule widening
 (whole club, not just their own team), attendance reports
-(`/dashboard/attendance`), the player-profile and news pieces of the
-content migration (`Player` + `NewsItem` DB tables, `/dashboard/roster`
-and `/dashboard/news` CMS), membership/fee records (`Contribution` DB
-table + `/dashboard/fees` and `/dashboard/fees/[id]`), and the audit log
-(`AuditEntry` model + `src/lib/audit.ts`'s `logAuditEntry`, wired into
-every mutating action above including News, plus `/dashboard/audit-log`,
-super-admin-only) are all built. Still open: granting/revoking the
-super-admin flag from the dashboard, the rest of the content migration
-(club info, committee roles, and membership tiers are still JSON — and
-the audit log doesn't cover their CMS mutations either, since none exist
-yet), and wiring roster auto-create/unpublish into Player role changes on
-an account.
+(`/dashboard/attendance`), the player-profile, news, club-info, and
+committee-role pieces of the content migration (`Player` + `NewsItem` +
+`ClubInfo` + `ClubRole` DB tables, `/dashboard/roster`, `/dashboard/news`,
+`/dashboard/club-info`, and `/dashboard/committee` CMS), membership/fee
+records (`Contribution` DB table + `/dashboard/fees` and
+`/dashboard/fees/[id]`), and the audit log (`AuditEntry` model +
+`src/lib/audit.ts`'s `logAuditEntry`, wired into every mutating action
+above, plus `/dashboard/audit-log`, super-admin-only) are all built. Still
+open: granting/revoking the super-admin flag from the dashboard,
+migrating membership tiers off JSON (the one remaining piece of content
+migration — and the audit log doesn't cover it either, since there's no
+dashboard mutation to log), and wiring roster auto-create/unpublish into
+Player role changes on an account.
 
 ## Known gotchas (hit these already — don't rediscover them)
 
@@ -189,16 +200,24 @@ Useful scripts (see `package.json`): `db:migrate`, `db:seed`, `db:reset`
 
 ## Content model reference
 
-- `src/lib/data/club.json` — mission, motto ("More Than a Club"), values
-  (Pride/Passion/Unity), contact info.
+- `src/lib/data/club.json` is the one-time seed source for the `ClubInfo`
+  singleton row (`prisma/seed.ts` upserts it, fixed `id: "club-info"`) —
+  edit it to seed new dev/test data, but real edits go through
+  `/dashboard/club-info`, not this file. Mission, motto ("More Than a
+  Club"), values (Pride/Passion/Unity), contact info.
 - `src/lib/data/teams.json` — the two teams (boys/girls), still JSON.
   `src/lib/data/players.json` is the one-time seed source for the `Player`
   DB table (`prisma/seed.ts` upserts it in, keyed by `slug`, on every seed
   run) — edit it to seed new dev/test data, but real roster edits go through
   `/dashboard/roster`, not this file. Player photos are generated initials
   avatars (`PlayerAvatar.tsx`), not real images.
-- `src/lib/data/roles.json`, `membership-tiers.json` — sourced from the
-  club's actual governance protocol PDF (`public/documents/`), surfaced on
+- `src/lib/data/roles.json` is the one-time seed source for the `ClubRole`
+  DB table (`prisma/seed.ts` upserts it in, keyed by `slug`, `order` set
+  from each entry's index in the file) — edit it to seed new dev/test
+  data, but real committee-role edits go through `/dashboard/committee`,
+  not this file. `src/lib/data/membership-tiers.json` is still the live
+  runtime source (not yet migrated). Both are sourced from the club's
+  actual governance protocol PDF (`public/documents/`), surfaced on
   `/club`.
 - `src/lib/data/news.json` is the one-time seed source for the `NewsItem`
   DB table (`prisma/seed.ts` upserts it in, keyed by `slug`) — edit it to

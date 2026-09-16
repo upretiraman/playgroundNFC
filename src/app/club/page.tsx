@@ -8,6 +8,11 @@ export const metadata: Metadata = {
     "NFC Nürnberg's mission and values, membership tiers, and how the club is organized and run.",
 };
 
+// Club info and committee roles come from the ClubInfo/ClubRole DB tables
+// now, not build-time JSON — this must stay dynamic so Admin edits show up
+// without a rebuild.
+export const dynamic = "force-dynamic";
+
 export default async function ClubPage() {
   const [club, tiers, roles] = await Promise.all([
     repository.getClubInfo(),

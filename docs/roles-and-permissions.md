@@ -136,10 +136,10 @@ not just Admin's — those flow through the exact same server actions
 (`canManageTeam` covers both roles), and branching the write on actor role
 would add complexity for no benefit; see
 [Audit Log](features/audit-log.md)'s Out of scope. Now also covers News
-(`news.create`/`news.update`/`news.delete`). Not built: writing an entry
-for super-admin grant/revoke (that UI doesn't exist yet) and for the rest
-of the CMS (club info/committee roles/membership tiers — still JSON, no
-dashboard mutations to log).
+(`news.create`/`news.update`/`news.delete`) and club info/committee roles
+(`clubInfo.update`, `role.create`/`role.update`/`role.delete`). Not built:
+writing an entry for super-admin grant/revoke (that UI doesn't exist yet)
+and for membership tiers — still JSON, no dashboard mutation to log.
 
 ---
 
@@ -153,9 +153,9 @@ not yet support:
    because Admins now edit them from the dashboard and Player accounts
    auto-create roster entries. `src/lib/repository.ts` keeps its interface —
    only its implementation changes, so callers stay untouched. Shop products,
-   **players**, and now **news** are already in the DB; club info, committee
-   roles, and membership tiers (aside from `feeAmount`, already a JSON field)
-   are still JSON.
+   **players**, **news**, and now **club info and committee roles** are
+   already in the DB; only membership tiers (aside from `feeAmount`,
+   already a JSON field) are still JSON.
 2. **`Player` becomes a table** — **done**, with a `published` flag driving
    public visibility (`src/app/dashboard/roster/**`, Admin-only). Not yet
    done: the relation to the `User` who owns the login, and auto-creating a
@@ -202,12 +202,12 @@ Per-role detail lives on each role page.
 | Admin-manages-Admin | Super-admins only | Unchanged |
 | Passwords | Forced change after create/reset | Unchanged |
 | Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
-| Public content | Player profiles: DB-backed, Admin-edited (`/dashboard/roster`). News: DB-backed, Admin-edited (`/dashboard/news`). Club info, committee roles, membership tiers: JSON files, dev-edited | DB-backed, Admin-edited, for all content types |
+| Public content | Player profiles: DB-backed (`/dashboard/roster`). News: DB-backed (`/dashboard/news`). Club info: DB-backed (`/dashboard/club-info`). Committee roles: DB-backed (`/dashboard/committee`). Membership tiers: JSON, dev-edited | DB-backed, Admin-edited, for all content types |
 | Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
 | Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed; audit-logged | Unchanged |
-| Audit log | Covers accounts, events/attendance, roster CMS, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Also covers super-admin grant/revoke and the rest of the CMS, once those write paths exist |
+| Audit log | Covers accounts, events/attendance, roster CMS, news, club info, committee roles, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Also covers super-admin grant/revoke and membership tiers, once those write paths exist |
 | Guest access | Full public read, names visible | Unchanged |
 
 Two rows are worth calling out because they **reduce** existing access rather
@@ -264,8 +264,13 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    changes. ~~**News**~~ — **done**: `NewsItem` Prisma model,
    `/dashboard/news` CMS (create/edit/delete), audit-logged, public
    `/news` and `/news/[slug]` switched to `force-dynamic` — see
-   [News](features/news.md). **Not done**: club info, committee roles,
-   and membership tiers are still JSON; roster auto-create is untouched.
+   [News](features/news.md). ~~**Club info + committee roles**~~ —
+   **done**: `ClubInfo` (singleton) + `ClubRole` Prisma models,
+   `/dashboard/club-info` and `/dashboard/committee` CMS, audit-logged,
+   `/`, `/club`, `/contact` all `force-dynamic` — see
+   [Public Content & Static Info](features/public-content.md).
+   **Not done**: membership tiers are still JSON; roster auto-create is
+   untouched.
 9. ~~**Fee records**~~ — **done.** `Contribution` model, `/dashboard/fees`,
    `/dashboard/fees/[id]` — see
    [Membership & Fee Records](features/membership-and-fees.md). Did not
