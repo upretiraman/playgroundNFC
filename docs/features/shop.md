@@ -39,8 +39,8 @@ doc closes that documentation gap and gives it a home for future issues.
   This document doesn't add a cart, payment, or order-tracking flow.
 - Inventory/stock-level tracking — `active` is a simple visibility flag, not
   a stock count.
-- Trainer access to shop management — see the open permissions question
-  below.
+- Trainer access to shop management — resolved as out of scope, see
+  Permissions below.
 
 ## Current vs. target
 
@@ -48,7 +48,7 @@ doc closes that documentation gap and gives it a home for future issues.
 |---|---|---|
 | Catalog storage | `Product` Prisma model (already DB-backed, unlike every other content type on the site) | Unchanged |
 | Public browsing | Live, active products only | Unchanged |
-| Catalog management | Admin-only (`requireRole(["ADMIN"])` in `actions.ts`) | Unchanged, pending the permissions question below |
+| Catalog management | Admin-only (`requireRole(["ADMIN"])` in `actions.ts`) | Unchanged — confirmed Admin-only, see Permissions below |
 | Checkout | None — "Order" links to Contact | Not addressed by this document; a future capability if the club wants it |
 
 ## Data model changes
@@ -58,18 +58,16 @@ acceptance criteria need.
 
 ## Permissions
 
-**Open question, not resolved by `docs/roles-and-permissions.md`**: that
-spec's permission matrix has no row for Shop/product management. Code today
-restricts it to Admin only (same as the CMS-flavored permissions for other
-content). Recommendation: treat Shop management as covered by the existing
-"Manage public content (CMS)" Admin permission and add an explicit row to
-`docs/roles-and-permissions.md` confirming that, rather than inventing a
-new permission category — but this needs a decision, not an assumption, since
-Trainers might reasonably want to manage kit/merchandise. Flagged as the
-first proposed issue below.
+**Resolved**: Shop/product management is Admin-only, matching current code
+(`requireRole(["ADMIN"])`). The club confirmed no Trainer access is wanted
+(issue #45) — Trainers do not manage merchandise, same as they don't manage
+news, roster, or club info. `docs/roles-and-permissions.md`'s permission
+matrix now has an explicit "Manage shop/product catalog" row (Admin/
+super-admin only) covering this, and `docs/roles/admin.md` and
+`docs/roles/trainer.md` already listed Shop under Admin's scope / excluded
+from Trainer's.
 
 ## Proposed issues
 
-- [ ] **Add Shop to `docs/roles-and-permissions.md`'s permission matrix** — confirm Admin-only is the intended target (or extend to Trainers) before further shop work is scoped.
-- [ ] **(Only if the above resolves to "extend"): widen shop management access** beyond Admin.
+- [x] **Add Shop to `docs/roles-and-permissions.md`'s permission matrix** — resolved Admin-only (issue #45).
 - [ ] **(Future, out of current scope): online checkout** — tracked here only as a placeholder if the club later wants it; not part of this document's acceptance criteria.

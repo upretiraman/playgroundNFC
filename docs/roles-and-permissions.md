@@ -38,6 +38,7 @@ at once (a playing coach is Player + Trainer). See
 | Manage Player/Trainer accounts | — | ❌ | ❌ | ✅ | ✅ |
 | Manage Admin accounts | — | ❌ | ❌ | ❌ | ✅ |
 | Manage public content (CMS) | — | ❌ | ❌ | ✅ | ✅ |
+| Manage shop/product catalog | — | ❌ | ❌ | ✅ | ✅ |
 | Membership/fee records | — | own only | ❌ | ✅ all | ✅ all |
 | Audit log | — | ❌ | ❌ | ❌ | ✅ |
 | Set own password | — | on forced reset | on forced reset | on forced reset | on forced reset |
@@ -206,6 +207,7 @@ Per-role detail lives on each role page.
 | Passwords | Forced change after create/reset | Unchanged |
 | Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
 | Public content | All DB-backed, Admin-edited: player profiles (`/dashboard/roster`), news (`/dashboard/news`), club info (`/dashboard/club-info`), committee roles (`/dashboard/committee`), membership tiers (`/dashboard/membership-tiers`) | Unchanged — content migration complete |
+| Shop/product catalog | Admin-only (`requireRole(["ADMIN"])` in `src/app/dashboard/shop/actions.ts`); `Product` model | Unchanged — confirmed Admin-only, see [Shop](features/shop.md) |
 | Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
