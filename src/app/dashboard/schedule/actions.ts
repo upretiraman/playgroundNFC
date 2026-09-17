@@ -79,6 +79,26 @@ export async function createEvent(formData: FormData) {
   return { id: event.id };
 }
 
+export async function deleteEvent(eventId: string) {
+  const user = await requireRole(["TRAINER", "ADMIN"]);
+  const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
+
+  if (!canManageEventTeam(user, event.team as TeamSlug | "both")) {
+    throw new Error("Not authorized for this team");
+  }
+
+  await db.event.delete({ where: { id: eventId } });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.delete",
+    targetType: "Event",
+    targetId: eventId,
+  });
+
+  revalidatePath("/dashboard/schedule");
+}
+
 export async function updatePlan(eventId: string, formData: FormData) {
   const user = await requireRole(["TRAINER", "ADMIN"]);
   const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
