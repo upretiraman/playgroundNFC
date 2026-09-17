@@ -19,9 +19,9 @@ document, Workitem).
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
 | [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping and Player schedule widening; attendance reports are target only |
-| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable, multi-role, and audit-log writes; granting the super-admin flag from the dashboard is target only |
+| [Account Management](features/account-management.md) | Admin creates/edits/resets/disables other members' accounts; multi-role; super-admin flag | Live, including edit/reset/disable, multi-role, audit-log writes, and granting/revoking the super-admin flag from the dashboard |
 | [Membership & Fee Records](features/membership-and-fees.md) | Manual contribution entry, auto-computed outstanding balance | Live (`/dashboard/fees`), including the audit-log write |
-| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Live (`/dashboard/audit-log`) for every write path that exists, including News, club info/committee roles, and membership tiers; only super-admin grant/revoke isn't a write path yet |
+| [Audit Log](features/audit-log.md) | Who-did-what-to-what-when across every Admin/super-admin mutation | Live (`/dashboard/audit-log`) for every write path that exists, including News, club info/committee roles, membership tiers, and super-admin grant/revoke |
 
 ## Suggested build order
 
@@ -89,8 +89,8 @@ News, Public Content migration).
    migration to cover `news.create`/`news.update`/`news.delete`,
    `clubInfo.update`, `role.create`/`role.update`/`role.delete`, and
    `membershipTier.create`/`membershipTier.update`/`membershipTier.delete`
-   too. **Not covered**: super-admin grant/revoke (no UI yet) — the only
-   Admin/super-admin mutation left without an audit-log write.
+   too, plus `user.grantSuperAdmin`/`user.revokeSuperAdmin` once that UI
+   shipped — every Admin/super-admin mutation now has an audit-log write.
 
 Two steps are worth calling out because they **reduce** existing access
 rather than extend it: step 1 removes ordinary Admins' ability to create

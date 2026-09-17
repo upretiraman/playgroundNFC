@@ -7,11 +7,9 @@ site has no self-service undo or version history anywhere else.
 
 **Status**: Built for every write path that exists today — `AuditEntry`
 Prisma model, `src/lib/audit.ts`'s `logAuditEntry` helper, wired into
-account mutations, event/attendance mutations, roster CMS mutations, and
-contribution entry — plus `/dashboard/audit-log` (super-admin-only read
-view). Not covered: super-admin grant/revoke (that UI doesn't exist yet)
-and the rest of the CMS (Public Content, News — still JSON, no dashboard
-mutations to log).
+account mutations (including super-admin grant/revoke), event/attendance
+mutations, roster CMS mutations, and contribution entry — plus
+`/dashboard/audit-log` (super-admin-only read view).
 
 ## User stories
 
@@ -35,9 +33,8 @@ mutations to log).
   [News](./news.md) / [Teams & Player Rosters](./teams-and-rosters.md)
   (any CMS edit), and
   [Membership & Fee Records](./membership-and-fees.md) (record a
-  contribution) writes one audit entry. **Built**, except: super-admin
-  grant/revoke (no UI yet), and Public Content/News (no dashboard
-  mutations exist yet to log — still dev-edited JSON).
+  contribution) writes one audit entry. **Built**, including super-admin
+  grant/revoke.
 - Each entry records **who** (actor), **what action**, **what target**, and
   **when** — no before/after diff of changed values. **Built**
   (`AuditEntry.actorId`/`action`/`targetType`+`targetId`/`createdAt`).
@@ -78,7 +75,7 @@ mutations to log).
 
 | Area | Today | Target |
 |---|---|---|
-| Audit log | Covers account, event/attendance, roster CMS, and contribution mutations (incl. super-admin actions) | Also covers super-admin grant/revoke and the rest of the CMS, once those write paths exist |
+| Audit log | Covers account (incl. super-admin grant/revoke), event/attendance, roster CMS, and contribution mutations (incl. super-admin actions) | Unchanged |
 | Diff tracking | None — who/action/target/when only | Unchanged |
 | Read access | Super-admin only (`/dashboard/audit-log`) | Unchanged |
 | Retention | Indefinite | Unchanged |
@@ -108,8 +105,8 @@ not restate it beyond the acceptance criteria above.
 
 - [x] **Add an audit log entry Prisma model** (actor, action, target type/id, timestamp) — done, `AuditEntry`.
 - [x] **Add a shared `logAuditEntry` helper** called from every mutating server action across the other capability docs, so each capability's write path stays a one-line addition rather than a bespoke integration — done, `src/lib/audit.ts`.
-- [x] **Wire audit writes into Account Management's mutations** (create/edit/reset/disable) — done, `src/app/dashboard/users/actions.ts`. Super-admin grant/revoke isn't wired in since that UI doesn't exist yet.
-- [x] **Wire audit writes into Event Scheduling & Attendance's mutations** (create event, edit plan, mark attendance) — done, `src/app/dashboard/schedule/actions.ts`. There's no cancel/delete-event action yet for either role to wire in.
+- [x] **Wire audit writes into Account Management's mutations** (create/edit/reset/disable, grant/revoke super-admin) — done, `src/app/dashboard/users/actions.ts`.
+- [x] **Wire audit writes into Event Scheduling & Attendance's mutations** (create event, edit plan, mark attendance, cancel/delete event) — done, `src/app/dashboard/schedule/actions.ts`.
 - [x] **Wire audit writes into the Teams & Player Rosters CMS mutations** (create, edit, publish/unpublish) — done, `src/app/dashboard/roster/actions.ts`. Public Content and News have no dashboard mutations yet to wire in.
 - [x] **Wire audit writes into Membership & Fee Records' contribution entry** — done, `src/app/dashboard/fees/actions.ts`.
 - [x] **Build the super-admin-only audit log read view** (reverse-chronological list, no diff) — done, `/dashboard/audit-log`.
