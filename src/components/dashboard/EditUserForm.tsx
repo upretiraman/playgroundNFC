@@ -142,6 +142,12 @@ export default function EditUserForm({
               )
             )}
           </div>
+          {initialRoles.includes("PLAYER") && !roles.includes("PLAYER") && (
+            <p className="mt-1 text-xs text-charcoal-soft/70">
+              Removing Player unpublishes (doesn&apos;t delete) the linked
+              roster entry.
+            </p>
+          )}
         </div>
 
         {needsTeam && (
@@ -172,7 +178,7 @@ export default function EditUserForm({
             htmlFor="edit-playerSlug"
             className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
           >
-            Link to Roster Player (optional)
+            Roster Entry
           </label>
           <select
             id="edit-playerSlug"
@@ -187,6 +193,13 @@ export default function EditUserForm({
               </option>
             ))}
           </select>
+          <p className="mt-1 text-xs text-charcoal-soft/70">
+            {initialRoles.includes("PLAYER")
+              ? "Change or clear the linked roster entry here; it won't create a new one automatically."
+              : initialPlayerSlug
+                ? "Re-adding Player relinks the account to its previous (still unpublished) roster entry — pick a different one below to link elsewhere instead."
+                : "Adding the Player role with this left as \"Not linked\" creates a fresh, unpublished roster entry automatically."}
+          </p>
         </div>
       )}
 

@@ -157,14 +157,14 @@ not yet support:
    interface throughout — only its implementation changed, so callers
    stayed untouched. Shop products, players, news, club info, committee
    roles, and now membership tiers are all in the DB. Player accounts
-   still don't auto-create roster entries — that's item 2 below, a
-   separate piece of work from the content migration itself.
+   auto-creating roster entries is item 2 below, a separate piece of work
+   from the content migration itself — also done.
 2. **`Player` becomes a table** — **done**, with a `published` flag driving
-   public visibility (`src/app/dashboard/roster/**`, Admin-only). Not yet
-   done: the relation to the `User` who owns the login, and auto-creating a
-   Player row when the Player role is added to an account — those still
-   depend on the account-management flow, which continues to link by the
-   loose `User.playerSlug` string today.
+   public visibility (`src/app/dashboard/roster/**`, Admin-only).
+   Auto-creating/unpublishing a `Player` row as the Player role is
+   added/removed is **done** too (`src/app/dashboard/users/actions.ts`). Not
+   yet done: the relation to the `User` who owns the login — still linked by
+   the loose `User.playerSlug` string, not a foreign key.
 3. **`User.team` is dropped for Trainers** (club-wide) and is meaningful only
    for Players, whose team follows their roster entry.
 4. **`User.role` becomes a set, not a single value.** An account can hold any
@@ -204,7 +204,7 @@ Per-role detail lives on each role page.
 | Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
 | Admin-manages-Admin | Super-admins only | Unchanged |
 | Passwords | Forced change after create/reset | Unchanged |
-| Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
+| Roster link | Auto-created/unpublished as Player role is added/removed (`User.playerSlug`), or picked from the `Player` table instead | Unchanged — the link is still `User.playerSlug`, not a foreign key |
 | Public content | All DB-backed, Admin-edited: player profiles (`/dashboard/roster`), news (`/dashboard/news`), club info (`/dashboard/club-info`), committee roles (`/dashboard/committee`), membership tiers (`/dashboard/membership-tiers`) | Unchanged — content migration complete |
 | Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
@@ -252,10 +252,11 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    public roster/player pages (`/teams`, `/teams/[team]`,
    `/teams/[team]/[player]`) were switched to `force-dynamic` so publish/edit
    changes show up without a rebuild. **Not done as part of this**: news,
-   club info, and membership tiers are still JSON; and the roster
-   auto-create/unpublish tied to adding/removing the Player role on an
-   account (`User.playerSlug` is still a loose string link, not a relation)
-   — see [Data model consequences](#data-model-consequences) item 2.
+   club info, and membership tiers are still JSON (see step 8); roster
+   auto-create/unpublish tied to adding/removing the Player role (shipped
+   separately, later — see step 8's note below); and the `User` → `Player`
+   foreign key (`User.playerSlug` is still a loose string link) — see
+   [Data model consequences](#data-model-consequences) item 2.
 7. ~~**`MembershipTier` fee amount**~~ — **done, ahead of the content
    migration below.** `membership-tiers.json` gained a `feeAmount` field
    (annual, EUR) — see [Data model consequences](#data-model-consequences)
@@ -274,9 +275,13 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    audit-logged; `Contribution.tierSlug` stayed a loose string reference
    into `MembershipTier.slug`, no change needed there — see
    [Public Content & Static Info](features/public-content.md). Content
-   migration is now complete. **Not done**: roster
-   auto-create/unpublish tied to Player role changes on an account — a
-   separate piece of work, still untouched.
+   migration is now complete. Roster auto-create/unpublish tied to Player
+   role changes on an account — a separate piece of work from the content
+   migration itself — is **done** too: `createUser`/`updateUser`
+   (`src/app/dashboard/users/actions.ts`) auto-create an unpublished stub
+   `Player` row when Player is added with no existing entry picked, and
+   unpublish the linked row when Player is removed. See
+   [Teams & Player Rosters](features/teams-and-rosters.md).
 9. ~~**Fee records**~~ — **done.** `Contribution` model, `/dashboard/fees`,
    `/dashboard/fees/[id]` — see
    [Membership & Fee Records](features/membership-and-fees.md). Did not

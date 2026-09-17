@@ -15,7 +15,7 @@ document, Workitem).
 |---|---|---|
 | [Public Content & Static Info](features/public-content.md) | Home, Club, Contact — mission, values, committee, membership tier descriptions | Live, fully DB-backed (`ClubInfo`/`ClubRole`/`MembershipTier` + `/dashboard/club-info`/`/dashboard/committee`/`/dashboard/membership-tiers`) — content migration for this capability is complete |
 | [News](features/news.md) | Article listing + detail pages | Live, DB-backed (`NewsItem` + `/dashboard/news` CMS) |
-| [Teams & Player Rosters](features/teams-and-rosters.md) | Team/roster browsing, player profiles | Live, including the `Player` DB migration and Admin roster CMS; roster auto-create/unpublish on account role changes is target only |
+| [Teams & Player Rosters](features/teams-and-rosters.md) | Team/roster browsing, player profiles | Live, including the `Player` DB migration, Admin roster CMS, and roster auto-create/unpublish on account role changes; the `User` → `Player` foreign key is target only |
 | [Shop](features/shop.md) | Public merchandise browsing + Admin catalog management | Live, fully built, previously undocumented |
 | [Auth & Account Access](features/auth-and-account-access.md) | Sign-in, session/route protection, forced password change | Live, including forced password change |
 | [Event Scheduling & Attendance](features/event-scheduling-and-attendance.md) | Training/game scheduling, attendance marking, public schedule | Live, including Trainer de-scoping and Player schedule widening; attendance reports are target only |
@@ -50,11 +50,11 @@ News, Public Content migration).
    their own team. Attendance visibility (own record only) is unchanged.
 5. ~~**Player/roster publish-gating**~~ ([Teams & Player Rosters](features/teams-and-rosters.md)) —
    **done.** `Player` is a Prisma model with a `published` flag and an
-   Admin CMS (`/dashboard/roster`). **Not done**: auto-create/unpublish
-   tied to adding/removing the Player role on an account, and a real
-   `User` → `Player` foreign key (still `User.playerSlug`, a loose string
-   match) — both still depend on the multi-role model from step 2, which
-   has landed, so they're unblocked whenever picked up.
+   Admin CMS (`/dashboard/roster`). Auto-create/unpublish tied to
+   adding/removing the Player role on an account is **done** too
+   (`src/app/dashboard/users/actions.ts`), depending on the multi-role
+   model from step 2 as expected. **Not done**: a real `User` → `Player`
+   foreign key (still `User.playerSlug`, a loose string match).
 6. ~~**Content migration to the database**~~ ([Public Content & Static Info](features/public-content.md),
    [News](features/news.md)) — **done.** Player profiles (step 5), **News**
    (`NewsItem` + `/dashboard/news`), **club info + committee roles**

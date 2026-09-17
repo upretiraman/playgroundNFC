@@ -37,19 +37,21 @@ reset is the single exception.
 ## Roster link
 
 Creating a Player account **auto-creates their roster entry**, so a login and a
-roster record can never drift apart. **Not built yet** — today an Admin
-creating a Player account optionally links it to an existing `Player` row via
-a dropdown (`User.playerSlug`, a loose string reference); nothing is created
-automatically.
+roster record can never drift apart in the common case. **Built** — an Admin
+creating a Player account (or adding Player to an existing one) gets an
+auto-created, unpublished stub `Player` row (`createStubPlayer` in
+`src/app/dashboard/users/actions.ts`) unless they instead pick an existing
+`Player` row via the dropdown (`User.playerSlug`, still a loose string
+reference, not a foreign key — a login and a roster record can still drift
+apart if an Admin deliberately links to an existing entry that later gets
+edited independently).
 
 The auto-created entry is **hidden from the public site until an Admin
 publishes it**. Real names go on a public website by deliberate act, never as a
-side effect of account creation. The `published` gate itself is **built** —
-`Player` is a DB table with a `published` flag, and an Admin can create, edit,
-and publish/unpublish profiles from `/dashboard/roster`. What's missing is
-just the automatic part: publishing today is a manual Admin action on any
-`Player` row, not something that happens as a side effect of account
-creation.
+side effect of account creation. **Built** — `Player` is a DB table with a
+`published` flag, an auto-created stub always starts unpublished, and an
+Admin can create, edit, and publish/unpublish profiles from
+`/dashboard/roster`.
 
 A Player's team follows from their roster entry rather than being set
 independently on the account. **Not built** — `User.team` is still set
@@ -68,7 +70,8 @@ addition to the club-wide Trainer powers on top.
 
 Adding the Player role to an existing Trainer/Admin account auto-creates a
 roster entry, same as a fresh Player signup. Removing Player from a
-multi-role account unpublishes but retains that roster entry.
+multi-role account unpublishes but retains that roster entry — both
+**built**, see [Roster link](#roster-link) above.
 
 ## Account lifecycle
 
@@ -85,15 +88,17 @@ multi-role account unpublishes but retains that roster entry.
 |---|---|---|
 | Schedule scope | Whole club (`src/app/dashboard/schedule/page.tsx`) | Unchanged |
 | Attendance visibility | Own record | Unchanged |
-| Roster link | Optional, picked from a `Player` (DB) dropdown via `User.playerSlug` | Auto-created, publish-gated |
-| Roster storage / publish gate | `Player` DB table with a `published` flag; Admin CRUD at `/dashboard/roster` | Unchanged — auto-create on top of this is what's still missing |
+| Roster link | Auto-created (unpublished stub) when Player is added, or picked from a `Player` (DB) dropdown instead — still `User.playerSlug`, not a foreign key | Auto-create/unpublish unchanged; foreign key still open |
+| Roster storage / publish gate | `Player` DB table with a `published` flag; Admin CRUD at `/dashboard/roster`; auto-created entries start unpublished | Unchanged |
 | Password | Forced change on first login and after reset | Unchanged |
 | Fee records | Sees own itemized record, outstanding auto-computed (`/dashboard/fees`) | Unchanged |
 | Read-only | Yes | Unchanged |
 | Roles | Can combine with Trainer/Admin | Unchanged |
 
-The roster-link change is the significant remaining one: players have moved
-from `src/lib/data/players.json` into a database table with a `published`
-flag, but creating/removing that link is still a manual Admin step
-(`User.playerSlug`), not an automatic side effect of adding/removing the
-Player role.
+The remaining gap is narrower now: players have moved from
+`src/lib/data/players.json` into a database table with a `published` flag,
+and creating/removing the link is an automatic side effect of adding/removing
+the Player role. What's left is turning `User.playerSlug` into a real
+foreign key (see [Data model consequences](../roles-and-permissions.md#data-model-consequences)
+item 2) and having a Player's team follow their roster entry instead of
+being set independently on the account.

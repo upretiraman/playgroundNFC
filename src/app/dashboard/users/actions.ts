@@ -13,6 +13,66 @@ import {
   type SessionUser,
   type UserRole,
 } from "@/lib/auth-types";
+import { slugify } from "@/lib/slug";
+import type { TeamSlug } from "@/lib/types";
+
+/** Auto-creates an unpublished stub roster entry for a newly Player-flagged
+ * account, so account creation and roster maintenance are one action
+ * (docs/features/teams-and-rosters.md) rather than two — the Admin fills in
+ * real details (number, position, bio) later via /dashboard/roster. Only
+ * called when no existing roster entry was picked to link instead. Returns
+ * the new row's slug. */
+async function createStubPlayer(
+  actingUserId: string,
+  name: string,
+  team: TeamSlug
+) {
+  const base = slugify(`${team}-${name}`) || "player";
+  let slug = base;
+  for (let suffix = 2; await db.player.findUnique({ where: { slug } }); suffix++) {
+    slug = `${base}-${suffix}`;
+  }
+
+  const player = await db.player.create({
+    data: {
+      slug,
+      team,
+      name,
+      number: 0,
+      position: "Forward",
+      bio: "",
+      joinedYear: new Date().getFullYear(),
+      published: false,
+    },
+  });
+
+  await logAuditEntry({
+    actorId: actingUserId,
+    action: "player.create",
+    targetType: "Player",
+    targetId: player.id,
+  });
+
+  return player.slug;
+}
+
+/** Unpublishes (never deletes) the roster entry linked to a `User` losing the
+ * Player role, per the multi-role rules in docs/roles-and-permissions.md —
+ * match history and profile data stay intact for if Player is added back. */
+async function unpublishLinkedPlayer(actingUserId: string, playerSlug: string | null) {
+  if (!playerSlug) return;
+  const player = await db.player.findUnique({ where: { slug: playerSlug } });
+  if (!player || !player.published) return;
+
+  await db.player.update({ where: { slug: playerSlug }, data: { published: false } });
+
+  await logAuditEntry({
+    actorId: actingUserId,
+    action: "player.setPublished",
+    targetType: "Player",
+    targetId: player.id,
+  });
+}
 
 function requireString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -61,7 +121,7 @@ export async function createUser(formData: FormData) {
   const name = requireString(formData, "name");
   const email = requireString(formData, "email").toLowerCase().trim();
   const password = requireString(formData, "password");
-  const playerSlug = (formData.get("playerSlug") as string) || null;
+  const chosenPlayerSlug = (formData.get("playerSlug") as string) || null;
   const { roles, team } = readRoleSet(actingUser, formData);
 
   if (password.length < 8) {
@@ -75,6 +135,12 @@ export async function createUser(formData: FormData) {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
+  // No existing roster entry picked to link → give this new Player their own,
+  // unpublished until an Admin fills it in. See createStubPlayer above.
+  const playerSlug = roles.includes("PLAYER")
+    ? (chosenPlayerSlug ?? (await createStubPlayer(actingUser.id, name, team as TeamSlug)))
+    : null;
+
   const created = await db.user.create({
     data: {
       name,
@@ -82,7 +148,7 @@ export async function createUser(formData: FormData) {
       passwordHash,
       roles: serializeRoles(roles),
       team,
-      playerSlug: roles.includes("PLAYER") ? playerSlug : null,
+      playerSlug,
       mustChangePassword: true,
     },
   });
@@ -95,6 +161,7 @@ export async function createUser(formData: FormData) {
   });
 
   revalidatePath("/dashboard/users");
+  revalidatePath("/dashboard/roster");
 }
 
 export async function updateUser(userId: string, formData: FormData) {
@@ -103,7 +170,7 @@ export async function updateUser(userId: string, formData: FormData) {
 
   const name = requireString(formData, "name");
   const email = requireString(formData, "email").toLowerCase().trim();
-  const playerSlug = (formData.get("playerSlug") as string) || null;
+  const chosenPlayerSlug = (formData.get("playerSlug") as string) || null;
   const { roles, team } = readRoleSet(actingUser, formData);
 
   if (email !== target.email) {
@@ -113,6 +180,31 @@ export async function updateUser(userId: string, formData: FormData) {
     }
   }
 
+  const wasPlayer = parseRoles(target.roles).includes("PLAYER");
+  const willBePlayer = roles.includes("PLAYER");
+
+  // Roster auto-create/unpublish tied to the Player role changing — see
+  // docs/features/teams-and-rosters.md. A role set that stays Player
+  // throughout (no transition) just uses whatever was submitted, unchanged.
+  let playerSlug = target.playerSlug;
+  if (willBePlayer && !wasPlayer) {
+    // Re-adding Player after a previous removal re-links the same entry
+    // (unpublished, not deleted, above) rather than spawning a duplicate —
+    // only a genuinely first-time Player gets a fresh stub. The form's
+    // roster dropdown is filtered to the newly-selected team, so it can't
+    // offer a prior entry from a different team as an option; falling back
+    // to `target.playerSlug` here (not just the submitted choice) is what
+    // makes re-linking work even when nothing was submitted for it.
+    playerSlug =
+      chosenPlayerSlug ??
+      target.playerSlug ??
+      (await createStubPlayer(actingUser.id, name, team as TeamSlug));
+  } else if (willBePlayer) {
+    playerSlug = chosenPlayerSlug;
+  } else if (wasPlayer) {
+    await unpublishLinkedPlayer(actingUser.id, target.playerSlug);
+  }
+
   await db.user.update({
     where: { id: userId },
     data: {
@@ -120,7 +212,7 @@ export async function updateUser(userId: string, formData: FormData) {
       email,
       roles: serializeRoles(roles),
       team,
-      playerSlug: roles.includes("PLAYER") ? playerSlug : null,
+      playerSlug,
     },
   });
 
@@ -133,6 +225,7 @@ export async function updateUser(userId: string, formData: FormData) {
 
   revalidatePath("/dashboard/users");
   revalidatePath(`/dashboard/users/${userId}`);
+  revalidatePath("/dashboard/roster");
 }
 
 /** Issues a new temporary password and forces a change on next login. Returns

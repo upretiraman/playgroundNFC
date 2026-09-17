@@ -200,7 +200,7 @@ export default function NewUserForm({
             htmlFor="playerSlug"
             className="font-display text-xs uppercase tracking-wide text-charcoal-soft"
           >
-            Link to Roster Player (optional)
+            Link to Existing Roster Entry (optional)
           </label>
           <select
             id="playerSlug"
@@ -208,13 +208,18 @@ export default function NewUserForm({
             defaultValue=""
             className="mt-1 w-full rounded border border-cream-dark bg-white px-4 py-2.5 text-charcoal focus:border-crimson focus:outline-none"
           >
-            <option value="">Not linked</option>
+            <option value="">Auto-create a new roster entry</option>
             {playersForTeam.map((p) => (
               <option key={p.slug} value={p.slug}>
                 {p.name}
               </option>
             ))}
           </select>
+          <p className="mt-1 text-xs text-charcoal-soft/70">
+            Leave this as-is to get a fresh, unpublished roster entry you can
+            fill in later at Manage Roster — or pick an existing entry to
+            link this account to it instead.
+          </p>
         </div>
       )}
 
