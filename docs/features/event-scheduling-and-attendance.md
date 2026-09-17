@@ -45,8 +45,15 @@ reports are the one piece of this document still target-only — see
   for every player on the affected team(s) (already implemented).
 - A Trainer can create/edit/mark attendance for **any** team, not just
   one — this **removed** the previous `canManageTeam` team boundary. See
-  [docs/roles/trainer.md](../roles/trainer.md). (Cancel/delete of events isn't
-  built for any role yet — separate from this de-scoping.)
+  [docs/roles/trainer.md](../roles/trainer.md).
+- A Trainer or Admin can cancel/delete an event they're authorized to manage
+  (`canManageEventTeam` — same boundary as editing, so a "both"/club-wide
+  event stays Admin-only to delete). Deleting removes the `Event` row and
+  cascades its `Attendance` rows; there is no soft-cancelled state to show
+  elsewhere, since removal alone satisfies "stops showing on the public
+  site." Audit-logged as `event.delete`. **Built**: `deleteEvent`
+  (`src/app/dashboard/schedule/actions.ts`), `DeleteEventButton`
+  (`src/app/dashboard/schedule/[id]/page.tsx`).
 - Club-wide ("both") events remain Admin-only to create — unchanged by the
   Trainer de-scoping.
 - A Player sees the **whole club's** schedule but only **their own**

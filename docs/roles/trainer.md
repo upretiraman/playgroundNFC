@@ -79,7 +79,7 @@ outside the schedule and attendance.
 | `team` field | Dropped — always `null` | Unchanged |
 | Training sessions | Create/edit, any team | Unchanged |
 | Games | Create/edit, any team | Unchanged |
-| Cancel/delete events | Not built for anyone yet | Any team |
+| Cancel/delete events | Built (`deleteEvent`, `DeleteEventButton`), any team | Unchanged |
 | Club-wide events | Blocked (`canManageEventTeam`) | Unchanged — still blocked |
 | Attendance marking | Any team | Unchanged |
 | Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
