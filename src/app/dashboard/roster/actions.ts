@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { logAuditEntry } from "@/lib/audit";
 import { requireRole } from "@/lib/auth-helpers";
+import { slugify } from "@/lib/slug";
 import type { PlayerPosition, TeamSlug } from "@/lib/types";
 
 const TEAMS: TeamSlug[] = ["boys", "girls"];
@@ -20,14 +21,6 @@ function requireString(formData: FormData, key: string): string {
     throw new Error(`Missing required field: ${key}`);
   }
   return value;
-}
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function playerFields(formData: FormData) {

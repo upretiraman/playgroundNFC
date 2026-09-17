@@ -8,8 +8,10 @@ Player accounts are created, edited, or removed.
 
 **Status**: Live (browsing). `Player` is a Prisma model with a `published`
 flag and an Admin CMS (`/dashboard/roster`) — see [Current vs. target](#current-vs-target).
-Roster auto-create/unpublish tied to account role changes, and the `User` ↔
-`Player` foreign key, are still target only.
+Roster auto-create/unpublish tied to account role changes is built. The
+`User` ↔ `Player` foreign key (`User.playerSlug` is still a loosely-typed
+string match) is still target only — a separate piece of work from the
+auto-create/unpublish wiring, see [Data model changes](#data-model-changes).
 
 ## User stories
 
@@ -21,19 +23,25 @@ Roster auto-create/unpublish tied to account role changes, and the `User` ↔
   year, captain status), so I can learn more about them.
 - As an **Admin**, I want a Player account I create to automatically get a
   roster entry (rather than picking one from a static list), so account
-  creation and roster maintenance are the same action, not two. **Not built**
-  — an Admin still creates/edits roster entries separately, at
-  `/dashboard/roster`, and links a `User` to one via `playerSlug`.
+  creation and roster maintenance are the same action, not two. **Built** —
+  `createUser`/`updateUser` (`src/app/dashboard/users/actions.ts`)
+  auto-create an unpublished stub `Player` row (name from the account, team
+  from the form, placeholder number/position/bio/joinedYear) whenever the
+  Player role is applied and no existing roster entry was picked to link
+  instead. An Admin can still pick an existing entry from the "Link to
+  Existing Roster Entry" dropdown to skip the stub and link directly.
 - As an **Admin**, I want a roster entry to stay unpublished until I choose
   to publish it, so a newly created account doesn't show a half-filled
   profile to the public before I've added a bio/photo. **Built** — every new
-  entry created at `/dashboard/roster/new` defaults to unpublished until the
-  Admin checks "Visible on the public site" (or toggles it later from the
-  roster list); it's just a manual choice rather than a side effect of
-  account creation.
+  entry, whether created at `/dashboard/roster/new` or auto-created by
+  adding the Player role to an account, defaults to unpublished until the
+  Admin explicitly publishes it from `/dashboard/roster`.
 - As an **Admin**, I want removing the Player role from an account to
   unpublish (not delete) their roster entry, so match history and past
-  profile data aren't lost.
+  profile data aren't lost. **Built** — `updateUser` unpublishes the linked
+  `Player` row when Player leaves an account's role set; the `User.playerSlug`
+  link itself is left in place (not nulled out) so re-adding Player later
+  naturally re-offers the same entry instead of orphaning it.
 
 ## Acceptance criteria
 
@@ -47,11 +55,10 @@ Roster auto-create/unpublish tied to account role changes, and the `User` ↔
   (`/dashboard/roster`); an unpublished entry doesn't appear under
   `/teams/[team]` or `/teams/[team]/[player]`, and publishing/unpublishing
   takes effect immediately (those pages are `force-dynamic`).
-- **Not yet built**: creating a Player account auto-creating a roster entry
-  linked to that `User`, and removing the Player role from a multi-role
-  account auto-unpublishing (not deleting) the linked roster entry — both
-  are still manual Admin steps today, done independently at
-  `/dashboard/roster` rather than as a side effect of `/dashboard/users`.
+- **Built**: creating a Player account (or adding Player to an existing
+  one) auto-creates a linked, unpublished roster entry unless an existing
+  one is picked instead; removing Player from a multi-role account
+  auto-unpublishes (not deletes) the linked roster entry.
 
 ## Out of scope
 
@@ -68,9 +75,9 @@ Roster auto-create/unpublish tied to account role changes, and the `User` ↔
 | Area | Today | Target |
 |---|---|---|
 | Storage | `Player` is a Prisma table (`prisma/schema.prisma`), Admin-edited at `/dashboard/roster`. `teams.json` is still dev-edited JSON. | `Player` unchanged; open question on `teams.json` (see [Proposed issues](#proposed-issues)) |
-| Roster ↔ account link | `User.playerSlug` optionally picked from a `Player` dropdown at account creation — a loose string match, not a foreign key | Auto-created when Player role is added to a `User`; real `User` → `Player` foreign key |
-| Publish gate | **Built** — `published: Boolean` on `Player`, manually toggled from `/dashboard/roster` | Unchanged — the gate itself is done; only the auto-publish-on-create trigger is still manual |
-| Removing Player role | N/A — role is single-valued today, and even once multi-valued, removing it doesn't touch the linked `Player` row | Unpublishes but retains the roster entry (soft, same pattern as account deactivation) |
+| Roster ↔ account link | `User.playerSlug` — auto-created (own stub `Player` row) when Player is added with no existing entry picked, or picked from a dropdown to link an existing one; still a loose string match, not a foreign key | Auto-create/unpublish unchanged; the foreign key itself is still open — see [Data model changes](#data-model-changes) |
+| Publish gate | **Built** — `published: Boolean` on `Player`, manually toggled from `/dashboard/roster`; auto-created stub entries also start unpublished | Unchanged |
+| Removing Player role | **Built** — `updateUser` unpublishes (never deletes) the linked `Player` row when Player leaves the role set; `User.playerSlug` is left in place for a later re-add | Unchanged |
 | Teams | `teams.json`, developer-edited | Likely stays low-churn enough to remain JSON, or migrates alongside `Player` — see open question in [Proposed issues](#proposed-issues) |
 
 ## Data model changes
@@ -84,12 +91,15 @@ Roster auto-create/unpublish tied to account role changes, and the `User` ↔
   login (`userId`, nullable — a roster entry can exist without a login
   until an account is created, or vice versa depending on the build order
   chosen). `User.playerSlug` is still a loosely-typed string matched
-  against `Player.slug`, not a foreign key.
-- Auto-create/unpublish triggers off the Player role being added to or
-  removed from a `User`'s role set still depend on
-  [Account Management](./account-management.md)'s multi-role work, which
-  has landed (`User.roles` is already a set) — so this is unblocked, just
-  not wired up yet. See the build order in [docs/features.md](../features.md).
+  against `Player.slug`, not a foreign key. This is a separate piece of
+  work from auto-create/unpublish below and was never a dependency of it —
+  the loose string link was already enough to build on.
+- **Built**: auto-create/unpublish triggers off the Player role being
+  added to or removed from a `User`'s role set
+  (`src/app/dashboard/users/actions.ts`'s `createStubPlayer`/
+  `unpublishLinkedPlayer`, called from `createUser`/`updateUser`). Depended
+  on [Account Management](./account-management.md)'s multi-role work
+  (`User.roles` as a set), which had already landed.
 
 ## Permissions
 
@@ -105,6 +115,6 @@ authoritative permission rule.
 - [x] **Add `Player` Prisma model with `published` flag, migrate off `players.json`** — done (`prisma/schema.prisma`, `src/lib/repository.ts`). `players.json` remains only as the one-time seed source in `prisma/seed.ts`.
 - [x] **Admin dashboard: publish/unpublish and edit a roster entry** (bio, hometown, etc.) — done (`/dashboard/roster`, `/dashboard/roster/new`, `/dashboard/roster/[id]`). No photo field — see [Data model changes](#data-model-changes).
 - [ ] **Link `Player` to `User` via foreign key, backfill `playerSlug` matches**.
-- [ ] **Auto-create unpublished `Player` row when Player role is added to an account** — part of the Account Management multi-role work; coordinate rather than duplicate.
-- [ ] **Unpublish (not delete) `Player` row when Player role is removed**.
+- [x] **Auto-create unpublished `Player` row when Player role is added to an account** — done, `createStubPlayer` in `src/app/dashboard/users/actions.ts`.
+- [x] **Unpublish (not delete) `Player` row when Player role is removed** — done, `unpublishLinkedPlayer` in `src/app/dashboard/users/actions.ts`.
 - [ ] **Decide whether `teams.json` migrates to Prisma alongside `Player`, or stays static** — open question, teams change far less often than rosters; resolve before filing the `Player` migration issue so the scope is settled up front.

@@ -37,6 +37,15 @@ export default async function EditUserPage({
     redirect("/dashboard/users");
   }
 
+  // `User.team` is nulled whenever Player isn't in the role set (it's
+  // meaningless for Trainer/Admin), so re-adding Player after a removal has
+  // no team to default to. Fall back to the still-linked roster entry's own
+  // team so the form pre-selects the team that actually matches it, rather
+  // than a hardcoded default that would filter it out of the dropdown.
+  const linkedPlayerTeam = target.playerSlug
+    ? players.find((p) => p.slug === target.playerSlug)?.team ?? null
+    : null;
+
   return (
     <div className="bg-cream py-16 sm:py-20">
       <Container className="max-w-2xl">
@@ -63,7 +72,7 @@ export default async function EditUserPage({
             initialName={target.name}
             initialEmail={target.email}
             initialRoles={targetRoles}
-            initialTeam={target.team as "boys" | "girls" | null}
+            initialTeam={(target.team as "boys" | "girls" | null) ?? linkedPlayerTeam}
             initialPlayerSlug={target.playerSlug}
           />
         </div>
