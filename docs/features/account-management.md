@@ -10,10 +10,9 @@ almost every other capability's target state depends on the multi-role
 acting on their *own* session.
 
 **Status**: Create, edit, reset, deactivate, and multi-role accounts are all
-built, as is the super-admin flag and its Admin-on-Admin gating. Not built:
-granting/revoking the super-admin flag from the dashboard (still DB/seed
-only), and writing these mutations to an audit log (the log model itself
-doesn't exist yet).
+built, as is the super-admin flag, its Admin-on-Admin gating, granting/
+revoking the flag from the dashboard (with the lockout safeguard), and
+audit-log writes on every mutation this document describes.
 
 ## User stories
 
@@ -84,8 +83,8 @@ doesn't exist yet).
 | Deactivate accounts | Yes, soft disable | Unchanged |
 | Admin-manages-Admin | Super-admin only | Unchanged |
 | Roles | A set — any combination, plus the `isSuperAdmin` flag | Unchanged |
-| Grant/revoke `isSuperAdmin` | **No** — DB/seed only | Yes, super-admin only |
-| Audit log writes on these mutations | **No** — log model doesn't exist yet | Yes |
+| Grant/revoke `isSuperAdmin` | Yes — `setSuperAdmin`, `/dashboard/users/[id]`, super-admin only | Unchanged |
+| Audit log writes on these mutations | Yes | Unchanged |
 | Roster auto-create | N/A | Adding Player role auto-creates a `Player` row |
 | `User.team` | Required for Player only; dropped for Trainers | Unchanged (still not tied to roster entry yet) |
 
@@ -128,7 +127,7 @@ not restate the matrix, only the acceptance criteria that follow from it.
 - [x] **Build account edit UI/action** (name, email, role set).
 - [x] **Build password-reset UI/action** (sets `mustChangePassword`).
 - [x] **Build account deactivate/reactivate UI/action** (soft disable).
-- [ ] **Build UI to grant/revoke the `isSuperAdmin` flag**, with the lockout safeguard (can't zero out super-admins) — see [Super-admin](../roles/super-admin.md).
+- [x] **Build UI to grant/revoke the `isSuperAdmin` flag**, with the lockout safeguard (can't zero out super-admins) — `setSuperAdmin`, `SuperAdminToggleButton`, see [Super-admin](../roles/super-admin.md).
 - [ ] **Wire Player-role-add/remove to roster auto-create/unpublish** — coordinate with [Teams & Player Rosters](./teams-and-rosters.md).
 - [x] **Drop the `team` field from Trainer account creation** — see [Event Scheduling & Attendance](./event-scheduling-and-attendance.md).
-- [ ] **Write audit-log entries for every account mutation above** — coordinate with [Audit Log](./audit-log.md) so the model lands before or alongside the first write.
+- [x] **Write audit-log entries for every account mutation above** — see [Audit Log](./audit-log.md).

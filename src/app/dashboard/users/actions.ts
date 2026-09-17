@@ -14,6 +14,14 @@ import {
   type UserRole,
 } from "@/lib/auth-types";
 
+/** Counts active super-admins other than `excludeUserId`, so a caller can tell
+ * whether revoking/deactivating one more would zero out the club's super-admins. */
+async function countOtherActiveSuperAdmins(excludeUserId: string) {
+  return db.user.count({
+    where: { isSuperAdmin: true, isActive: true, id: { not: excludeUserId } },
+  });
+}
+
 function requireString(formData: FormData, key: string): string {
   const value = formData.get(key);
   if (typeof value !== "string" || value.trim() === "") {
@@ -113,6 +121,19 @@ export async function updateUser(userId: string, formData: FormData) {
     }
   }
 
+  // The super-admin flag only means anything alongside the Administrator role
+  // (docs/roles/super-admin.md) — dropping that role here revokes it too, subject
+  // to the same never-hit-zero lockout as an explicit revoke via setSuperAdmin.
+  const dropsSuperAdmin = target.isSuperAdmin && !roles.includes("ADMIN");
+  if (dropsSuperAdmin) {
+    const otherActiveSuperAdmins = await countOtherActiveSuperAdmins(userId);
+    if (otherActiveSuperAdmins === 0) {
+      throw new Error(
+        "Cannot remove the Administrator role from the last remaining super-admin."
+      );
+    }
+  }
+
   await db.user.update({
     where: { id: userId },
     data: {
@@ -121,6 +142,7 @@ export async function updateUser(userId: string, formData: FormData) {
       roles: serializeRoles(roles),
       team,
       playerSlug: roles.includes("PLAYER") ? playerSlug : null,
+      ...(dropsSuperAdmin ? { isSuperAdmin: false } : {}),
     },
   });
 
@@ -166,13 +188,57 @@ export async function setUserActive(userId: string, isActive: boolean) {
   if (userId === actingUser.id) {
     throw new Error("You cannot deactivate your own account.");
   }
-  await loadManageableTarget(actingUser, userId);
+  const target = await loadManageableTarget(actingUser, userId);
+
+  if (!isActive && target.isSuperAdmin) {
+    const otherActiveSuperAdmins = await countOtherActiveSuperAdmins(userId);
+    if (otherActiveSuperAdmins === 0) {
+      throw new Error("Cannot deactivate the last remaining super-admin.");
+    }
+  }
 
   await db.user.update({ where: { id: userId }, data: { isActive } });
 
   await logAuditEntry({
     actorId: actingUser.id,
     action: "user.setActive",
+    targetType: "User",
+    targetId: userId,
+  });
+
+  revalidatePath("/dashboard/users");
+  revalidatePath(`/dashboard/users/${userId}`);
+}
+
+/** Grants or revokes the super-admin flag. Super-admin-only, per
+ * docs/roles/super-admin.md — an ordinary Admin cannot touch this even on their
+ * own account. The flag can never hit zero active holders through normal use. */
+export async function setSuperAdmin(userId: string, isSuperAdmin: boolean) {
+  const actingUser = await requireRole(["ADMIN"]);
+  if (!canManageAdmins(actingUser)) {
+    throw new Error("Only a super-admin can grant or revoke the super-admin flag.");
+  }
+
+  const target = await db.user.findUnique({ where: { id: userId } });
+  if (!target) {
+    throw new Error("Account not found");
+  }
+  if (!parseRoles(target.roles).includes("ADMIN")) {
+    throw new Error("Only Administrator accounts can hold the super-admin flag.");
+  }
+
+  if (!isSuperAdmin && target.isSuperAdmin) {
+    const otherActiveSuperAdmins = await countOtherActiveSuperAdmins(userId);
+    if (otherActiveSuperAdmins === 0) {
+      throw new Error("Cannot revoke the last remaining super-admin.");
+    }
+  }
+
+  await db.user.update({ where: { id: userId }, data: { isSuperAdmin } });
+
+  await logAuditEntry({
+    actorId: actingUser.id,
+    action: isSuperAdmin ? "user.grantSuperAdmin" : "user.revokeSuperAdmin",
     targetType: "User",
     targetId: userId,
   });

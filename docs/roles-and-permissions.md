@@ -139,9 +139,10 @@ would add complexity for no benefit; see
 (`news.create`/`news.update`/`news.delete`), club info/committee roles
 (`clubInfo.update`, `role.create`/`role.update`/`role.delete`), and
 membership tiers (`membershipTier.create`/`membershipTier.update`/
-`membershipTier.delete`). Not built: writing an entry for super-admin
-grant/revoke — the only Admin/super-admin mutation without a write path
-into this log, since that UI doesn't exist yet.
+`membershipTier.delete`), and super-admin grant/revoke
+(`user.grantSuperAdmin`/`user.revokeSuperAdmin`) — the last remaining
+Admin/super-admin mutation without a write path into this log is now
+covered too.
 
 ---
 
@@ -210,7 +211,7 @@ Per-role detail lives on each role page.
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
 | Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
 | Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed; audit-logged | Unchanged |
-| Audit log | Covers accounts, events/attendance, roster CMS, news, club info, committee roles, membership tiers, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Also covers super-admin grant/revoke, once that UI exists |
+| Audit log | Covers accounts (incl. super-admin grant/revoke), events/attendance, roster CMS, news, club info, committee roles, membership tiers, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Unchanged |
 | Guest access | Full public read, names visible | Unchanged |
 
 Two rows are worth calling out because they **reduce** existing access rather
@@ -227,8 +228,8 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
    comma-separated set (`PLAYER`/`TRAINER`/`ADMIN` in any combination),
    plus the `isActive` and `mustChangePassword` fields and the account
    edit/reset/disable UI at `/dashboard/users/[id]`. Audit-log writes on
-   these mutations landed in step 10 below. Not done: any UI to
-   grant/revoke `isSuperAdmin` (still DB/seed-only).
+   these mutations landed in step 10 below. Grant/revoke of `isSuperAdmin`
+   itself shipped separately — see [Super-admin](roles/super-admin.md).
 3. ~~**Trainer de-scoping**~~ — **done.** Trainers are club-wide: `canManageTeam`
    no longer checks `user.team`, the account creation/edit forms drop the team
    field for Trainer, and `/dashboard/schedule/new` offers any team (not
@@ -289,6 +290,6 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
     (step 2), events/attendance (step 4), roster CMS (step 5), the
     step 8 content-migration CMS (news, club info, committee roles,
     membership tiers), and the step 9 fee-record write — see
-    [Audit Log](features/audit-log.md). Not covered yet: super-admin
-    grant/revoke — the only Admin/super-admin mutation without a write
-    path into this log, since that UI doesn't exist yet.
+    [Audit Log](features/audit-log.md). Super-admin grant/revoke
+    (`user.grantSuperAdmin`/`user.revokeSuperAdmin`) is covered too, once
+    that UI shipped alongside step 2.
