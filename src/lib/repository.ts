@@ -1,9 +1,4 @@
-import clubJson from "./data/club.json";
 import teamsJson from "./data/teams.json";
-import playersJson from "./data/players.json";
-import newsJson from "./data/news.json";
-import rolesJson from "./data/roles.json";
-import membershipTiersJson from "./data/membership-tiers.json";
 import { db } from "./db";
 import type {
   ClubInfo,
@@ -24,8 +19,19 @@ export interface ClubRepository {
   getClubInfo(): Promise<ClubInfo>;
   getTeams(): Promise<Team[]>;
   getTeam(slug: TeamSlug): Promise<Team | undefined>;
-  getPlayers(team?: TeamSlug): Promise<Player[]>;
-  getPlayer(slug: string): Promise<Player | undefined>;
+  /**
+   * `includeUnpublished` is for internal dashboard use (attendance,
+   * scheduling, linking a roster entry to an account) — public pages must
+   * leave it unset so an unpublished profile stays off the public site.
+   */
+  getPlayers(
+    team?: TeamSlug,
+    opts?: { includeUnpublished?: boolean }
+  ): Promise<Player[]>;
+  getPlayer(
+    slug: string,
+    opts?: { includeUnpublished?: boolean }
+  ): Promise<Player | undefined>;
   getNews(team?: TeamSlug): Promise<NewsItem[]>;
   getNewsItem(slug: string): Promise<NewsItem | undefined>;
   getClubRoles(): Promise<ClubRole[]>;
@@ -36,7 +42,15 @@ export interface ClubRepository {
 
 class JsonClubRepository implements ClubRepository {
   async getClubInfo(): Promise<ClubInfo> {
-    return clubJson as ClubInfo;
+    const club = await db.clubInfo.findUniqueOrThrow({
+      where: { id: "club-info" },
+    });
+    return {
+      ...club,
+      values: club.values.split("\n").filter(Boolean),
+      instagram: club.instagram ?? undefined,
+      whatsapp: club.whatsapp ?? undefined,
+    } as ClubInfo;
   }
 
   async getTeams(): Promise<Team[]> {
@@ -47,33 +61,57 @@ class JsonClubRepository implements ClubRepository {
     return (teamsJson as Team[]).find((t) => t.slug === slug);
   }
 
-  async getPlayers(team?: TeamSlug): Promise<Player[]> {
-    const players = playersJson as Player[];
-    const filtered = team ? players.filter((p) => p.team === team) : players;
-    return [...filtered].sort((a, b) => a.number - b.number);
+  async getPlayers(
+    team?: TeamSlug,
+    opts: { includeUnpublished?: boolean } = {}
+  ): Promise<Player[]> {
+    const players = await db.player.findMany({
+      where: {
+        ...(team ? { team } : {}),
+        ...(opts.includeUnpublished ? {} : { published: true }),
+      },
+      orderBy: { number: "asc" },
+    });
+    return players as Player[];
   }
 
-  async getPlayer(slug: string): Promise<Player | undefined> {
-    return (playersJson as Player[]).find((p) => p.slug === slug);
+  async getPlayer(
+    slug: string,
+    opts: { includeUnpublished?: boolean } = {}
+  ): Promise<Player | undefined> {
+    const player = await db.player.findUnique({ where: { slug } });
+    if (!player) return undefined;
+    if (!player.published && !opts.includeUnpublished) return undefined;
+    return player as Player;
   }
 
   async getNews(team?: TeamSlug): Promise<NewsItem[]> {
-    const news = [...(newsJson as NewsItem[])].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-    return team ? news.filter((n) => n.team === team || n.team === "both") : news;
+    const news = await db.newsItem.findMany({
+      where: team ? { OR: [{ team }, { team: "both" }] } : undefined,
+      orderBy: { date: "desc" },
+    });
+    return news.map((n) => ({ ...n, date: n.date.toISOString() })) as NewsItem[];
   }
 
   async getNewsItem(slug: string): Promise<NewsItem | undefined> {
-    return (newsJson as NewsItem[]).find((n) => n.slug === slug);
+    const item = await db.newsItem.findUnique({ where: { slug } });
+    if (!item) return undefined;
+    return { ...item, date: item.date.toISOString() } as NewsItem;
   }
 
   async getClubRoles(): Promise<ClubRole[]> {
-    return rolesJson as ClubRole[];
+    const roles = await db.clubRole.findMany({ orderBy: { order: "asc" } });
+    return roles.map((r) => ({
+      ...r,
+      duties: r.duties.split("\n").filter(Boolean),
+    })) as ClubRole[];
   }
 
   async getMembershipTiers(): Promise<MembershipTier[]> {
-    return membershipTiersJson as MembershipTier[];
+    const tiers = await db.membershipTier.findMany({
+      orderBy: { createdAt: "asc" },
+    });
+    return tiers as MembershipTier[];
   }
 
   async getProducts(): Promise<Product[]> {

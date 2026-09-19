@@ -4,9 +4,9 @@ Not a separate role — a **flag on an Admin account**. `role` stays `"ADMIN"`;
 a boolean marks the holder as a super-admin.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: partially built** — the flag itself and Admin-on-Admin gating
-exist; granting/revoking it from the dashboard and the audit log do not.
-See [Current vs. target](#current-vs-target).
+**Status: built.** The flag itself, Admin-on-Admin gating, the audit log
+(`/dashboard/audit-log`), and granting/revoking the flag from the dashboard
+all exist. See [Current vs. target](#current-vs-target).
 
 A super-admin holds **every [Admin](admin.md) permission**, plus the three
 below.
@@ -18,12 +18,14 @@ below.
 - **Grant the super-admin flag** to another Admin. Multiple super-admins may
   exist at once, deliberately: the club should never be one lost account away
   from an unmanageable site.
-- **View the audit log** of admin actions — covering every mutation an Admin
-  or super-admin can make: accounts, events, content, and fee records,
-  including super-admins' own actions. Each entry is a simple
-  who/action/target/when record (no before/after diff), retained
-  indefinitely. Restricting read access to super-admins keeps ordinary
-  Admins accountable to a smaller circle rather than to no one.
+- **View the audit log** (`/dashboard/audit-log`) of admin actions —
+  covering every mutation an Admin or super-admin can make: accounts,
+  events, content, and fee records, including super-admins' own actions.
+  Each entry is a simple who/action/target/when record (no before/after
+  diff), retained indefinitely. Restricting read access to super-admins
+  keeps ordinary Admins accountable to a smaller circle rather than to no
+  one. Covers Trainer-authored event/attendance mutations too, since they
+  flow through the same server actions as an Admin's.
 
 ## Where the flag comes from
 
@@ -68,21 +70,25 @@ three exclusive powers are enforced.
 | `isSuperAdmin` flag on `User` | Yes, defaults false | Unchanged |
 | Bootstrap Admin gets the flag | Yes (`prisma/seed.ts`) | Unchanged |
 | Admin-on-Admin gating | Yes — `canManageAdmins` in `src/lib/auth-helpers.ts`, re-checked in every account action (`src/app/dashboard/users/actions.ts`) | Unchanged |
-| Grant/revoke the flag | **No** — DB/seed only, no dashboard UI | Yes, super-admin only |
-| Lockout safeguard (can't zero out super-admins) | N/A — no UI to revoke it yet | Enforced when grant/revoke ships |
-| Audit log | Does not exist | Covers accounts, events, content, and fee records; super-admin-only read |
+| Grant/revoke the flag | Yes — `setSuperAdmin` action, `SuperAdminToggleButton` on `/dashboard/users/[id]`, super-admin only | Unchanged |
+| Lockout safeguard (can't zero out super-admins) | Enforced — `setSuperAdmin`, `setUserActive`, and `updateUser` (dropping the Administrator role) all block the action that would leave zero *active* super-admins | Unchanged |
+| Audit log | Covers accounts (incl. `user.grantSuperAdmin`/`user.revokeSuperAdmin`), events/attendance, roster CMS, news, club info, committee roles, membership tiers, and fee records (incl. Trainer and super-admin actions); super-admin-only read (`/dashboard/audit-log`) | Unchanged |
 
 What shipped: the flag itself and the gating it exists for — an ordinary
 Admin cannot create, edit, reset, or deactivate a fellow Admin
 (`src/app/dashboard/users/actions.ts`'s `loadManageableTarget` /
 `readRoleSet` calls `canManageAdmins`), and the "Administrator" role
-checkbox is hidden from them in `NewUserForm`/`EditUserForm`.
-
-What's left:
-
-1. UI for a super-admin to grant/revoke the flag on another Admin, plus the
-   lockout safeguard (can't demote themselves or the last remaining
-   super-admin to zero).
-2. An audit log model (actor, action, target, timestamp) written on every
-   Admin/super-admin mutation across accounts, events, content, and fee
-   records, with read access gated to super-admins.
+checkbox is hidden from them in `NewUserForm`/`EditUserForm`. Also shipped:
+the `AuditEntry` model and `/dashboard/audit-log` (see
+[Audit Log](../features/audit-log.md)), and grant/revoke itself —
+`setSuperAdmin` (`src/app/dashboard/users/actions.ts`) is callable only by
+an existing super-admin, only targets accounts that hold the Administrator
+role, and is wired into a "Super-admin Access" card on
+`/dashboard/users/[id]` via `SuperAdminToggleButton`. The lockout
+safeguard counts *active* super-admins (a disabled account's flag doesn't
+count as a usable safety net) and applies uniformly whether the flag would
+hit zero through an explicit revoke, a deactivation
+(`setUserActive`), or removing the Administrator role from the account's
+role set (`updateUser`) — self-revocation is allowed as long as another
+active super-admin remains, matching "the flag can never hit zero holders
+through normal use" above.

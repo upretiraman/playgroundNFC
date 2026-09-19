@@ -26,13 +26,16 @@ model User {
   isSuperAdmin       Boolean  @default(false) // gates Admin-on-Admin account management; only meaningful when roles includes "ADMIN"
   isActive           Boolean  @default(true) // soft disable — false blocks authentication, history is retained
   mustChangePassword Boolean  @default(true) // forces a password change on next login, after account creation or an Admin reset
-  team               String? // "boys" | "girls" — meaningful only for PLAYER (follows their roster entry); null for TRAINER/ADMIN-only accounts
+  team               String? // "boys" | "girls" — scopes PLAYER to a team; null for TRAINER (club-wide) and ADMIN-only accounts
   playerSlug         String? // links a PLAYER account to an existing roster player (src/lib/data/players.json)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  createdEvents Event[]
-  products      Product[]
+  createdEvents         Event[]
+  products              Product[]
+  contributions         Contribution[] @relation("MemberContributions")
+  recordedContributions Contribution[] @relation("RecordedContributions")
+  auditEntries          AuditEntry[]
 }
 
 model Event {
@@ -65,6 +68,130 @@ model Attendance {
   updatedAt  DateTime @updatedAt
 
   @@unique([eventId, playerSlug])
+}
+
+// A roster entry. Backed by the DB (migrated off src/lib/data/players.json)
+// so Admins can create/edit profiles from the dashboard. `published` gates
+// public visibility — see docs/roles/player.md and docs/roles/admin.md.
+model Player {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  team       String // "boys" | "girls"
+  name       String
+  number     Int
+  position   String // "Goalkeeper" | "Defender" | "Midfielder" | "Forward"
+  bio        String
+  joinedYear Int
+  hometown   String?
+  isCaptain  Boolean  @default(false)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// A membership fee contribution — manual Admin entry, no payment processor.
+// Append-only: no update/delete action exists (see
+// docs/features/membership-and-fees.md's Out of scope). Outstanding for a
+// (member, tier, period) combination is computed, never stored: tier's
+// feeAmount minus the sum of contributions recorded for that combination.
+model Contribution {
+  id           String   @id @default(cuid())
+  member       User     @relation("MemberContributions", fields: [memberId], references: [id])
+  memberId     String
+  amount       Float
+  date         DateTime
+  tierSlug     String // MembershipTier.slug (src/lib/data/membership-tiers.json)
+  periodYear   Int // the annual membership period this contribution counts toward
+  recordedBy   User     @relation("RecordedContributions", fields: [recordedById], references: [id])
+  recordedById String
+  createdAt    DateTime @default(now())
+}
+
+// Who did what to what, and when — no before/after diff by design (see
+// docs/features/audit-log.md's Out of scope). Covers every Admin/
+// super-admin mutation across accounts, events, content, and fee records.
+// Read access is super-admin only (src/app/dashboard/audit-log/page.tsx);
+// entries are retained indefinitely, no pruning.
+model AuditEntry {
+  id         String   @id @default(cuid())
+  actor      User     @relation(fields: [actorId], references: [id])
+  actorId    String
+  action     String // e.g. "user.create", "event.setAttendance", "player.setPublished", "contribution.create"
+  targetType String // "User" | "Event" | "Attendance" | "Player" | "Contribution"
+  targetId   String
+  createdAt  DateTime @default(now())
+}
+
+// A news article. Backed by the DB (migrated off src/lib/data/news.json)
+// so Admins can publish/edit/remove from the dashboard. See
+// docs/features/news.md.
+model NewsItem {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  date       DateTime
+  summary    String
+  body       String
+  team       String? // "boys" | "girls" | "both"
+  coverImage String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// A membership tier (Active/Supporting/Guest-Trial) — the public
+// description Guests see on /club, plus the feeAmount Contribution's
+// outstanding-balance computation reads. Backed by the DB (migrated off
+// src/lib/data/membership-tiers.json). See docs/features/public-content.md.
+// Contribution.tierSlug stays a loose string reference into this table's
+// slug, same pattern as Attendance.playerSlug before Player became a table.
+model MembershipTier {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  friendlies  String
+  tournaments String
+  feeAmount   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Club-wide info shown on the home/club/contact pages — a singleton row
+// (fixed id) rather than a fixed-schema table, since there is exactly one.
+// Backed by the DB (migrated off src/lib/data/club.json). See
+// docs/features/public-content.md.
+model ClubInfo {
+  id          String   @id @default("club-info")
+  name        String
+  shortName   String
+  foundedYear Int
+  city        String
+  country     String
+  motto       String
+  values      String // newline-separated — SQLite has no array type
+  mission     String
+  email       String
+  instagram   String?
+  whatsapp    String?
+  address     String
+  updatedAt   DateTime @updatedAt
+}
+
+// A committee role (Chair, Treasurer, Head Coach, etc.), shown on /club.
+// Backed by the DB (migrated off src/lib/data/roles.json). `order` drives
+// display order since it's not necessarily creation order — reordering is
+// done by editing this number, not a drag-and-drop UI (see
+// docs/features/public-content.md's Proposed issues).
+model ClubRole {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  reportsTo String
+  summary   String
+  duties    String // newline-separated — SQLite has no array type
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {

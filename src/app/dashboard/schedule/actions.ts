@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { logAuditEntry } from "@/lib/audit";
 import { requireRole, canManageEventTeam } from "@/lib/auth-helpers";
 import { repository } from "@/lib/repository";
 import type { TeamSlug } from "@/lib/types";
@@ -42,8 +43,8 @@ export async function createEvent(formData: FormData) {
 
   const players =
     team === "both"
-      ? await repository.getPlayers()
-      : await repository.getPlayers(team);
+      ? await repository.getPlayers(undefined, { includeUnpublished: true })
+      : await repository.getPlayers(team, { includeUnpublished: true });
 
   const event = await db.event.create({
     data: {
@@ -67,8 +68,35 @@ export async function createEvent(formData: FormData) {
     },
   });
 
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.create",
+    targetType: "Event",
+    targetId: event.id,
+  });
+
   revalidatePath("/dashboard/schedule");
   return { id: event.id };
+}
+
+export async function deleteEvent(eventId: string) {
+  const user = await requireRole(["TRAINER", "ADMIN"]);
+  const event = await db.event.findUniqueOrThrow({ where: { id: eventId } });
+
+  if (!canManageEventTeam(user, event.team as TeamSlug | "both")) {
+    throw new Error("Not authorized for this team");
+  }
+
+  await db.event.delete({ where: { id: eventId } });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.delete",
+    targetType: "Event",
+    targetId: eventId,
+  });
+
+  revalidatePath("/dashboard/schedule");
 }
 
 export async function updatePlan(eventId: string, formData: FormData) {
@@ -81,6 +109,14 @@ export async function updatePlan(eventId: string, formData: FormData) {
 
   const plan = (formData.get("plan") as string) || null;
   await db.event.update({ where: { id: eventId }, data: { plan } });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "event.updatePlan",
+    targetType: "Event",
+    targetId: eventId,
+  });
+
   revalidatePath(`/dashboard/schedule/${eventId}`);
 }
 
@@ -103,10 +139,17 @@ export async function setAttendance(
     throw new Error("Invalid attendance status");
   }
 
-  await db.attendance.upsert({
+  const attendance = await db.attendance.upsert({
     where: { eventId_playerSlug: { eventId, playerSlug } },
     update: { status, note },
     create: { eventId, playerSlug, status, note },
+  });
+
+  await logAuditEntry({
+    actorId: user.id,
+    action: "attendance.set",
+    targetType: "Attendance",
+    targetId: attendance.id,
   });
 
   revalidatePath(`/dashboard/schedule/${eventId}`);

@@ -44,3 +44,36 @@ export async function getEventWithAttendance(id: string) {
     },
   });
 }
+
+/**
+ * Attendance rows for the reports page (Trainer + Admin, see
+ * docs/roles/trainer.md), optionally filtered by the event's team and/or a
+ * date range. `team` filters to that team's events plus club-wide ("both")
+ * ones, matching how listEvents scopes the schedule.
+ */
+export async function listAttendanceForReport(opts: {
+  team?: TeamSlug;
+  from?: Date;
+  to?: Date;
+} = {}) {
+  const { team, from, to } = opts;
+  return db.attendance.findMany({
+    where: {
+      event: {
+        ...(team ? { OR: [{ team }, { team: "both" }] } : {}),
+        ...(from || to
+          ? {
+              date: {
+                ...(from ? { gte: from } : {}),
+                ...(to ? { lte: to } : {}),
+              },
+            }
+          : {}),
+      },
+    },
+    include: {
+      event: { select: { id: true, type: true, team: true, date: true } },
+    },
+    orderBy: { event: { date: "asc" } },
+  });
+}

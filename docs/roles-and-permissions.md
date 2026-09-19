@@ -111,9 +111,10 @@ Recorded by manual Admin entry — there is no payment processor integration.
 Each contribution carries an **amount**, a **date**, and the **period/tier**
 it covers. "Outstanding" is not entered by hand: it is computed as the
 tier's fee amount minus the contributions recorded for that period, so an
-Admin only ever enters what was actually paid. This requires each
-membership tier to carry a fee amount, which `membership-tiers.json` does
-not today.
+Admin only ever enters what was actually paid. **Built**: the `Contribution`
+model (`prisma/schema.prisma`), `/dashboard/fees`, and `/dashboard/fees/[id]`
+— see [Membership & Fee Records](features/membership-and-fees.md) for the
+detailed spec, including the audit-log write on every contribution recorded.
 
 A Player sees an itemized list of their own contributions (not just a
 paid/outstanding summary); an Admin sees the same for every member.
@@ -127,6 +128,22 @@ when. It does not store a before/after diff of the changed values. Entries
 are retained indefinitely. Restricted to super-admins to read; see
 [Super-admin](roles/super-admin.md).
 
+**Built**: `AuditEntry` model, `src/lib/audit.ts`'s `logAuditEntry`, wired
+into every mutating server action that exists today (accounts, events,
+attendance, roster CMS, contributions), plus `/dashboard/audit-log`
+(super-admin-only). Also logs Trainer-authored event/attendance actions,
+not just Admin's — those flow through the exact same server actions
+(`canManageTeam` covers both roles), and branching the write on actor role
+would add complexity for no benefit; see
+[Audit Log](features/audit-log.md)'s Out of scope. Now also covers News
+(`news.create`/`news.update`/`news.delete`), club info/committee roles
+(`clubInfo.update`, `role.create`/`role.update`/`role.delete`), and
+membership tiers (`membershipTier.create`/`membershipTier.update`/
+`membershipTier.delete`), and super-admin grant/revoke
+(`user.grantSuperAdmin`/`user.revokeSuperAdmin`) — the last remaining
+Admin/super-admin mutation without a write path into this log is now
+covered too.
+
 ---
 
 ## Data model consequences
@@ -134,14 +151,21 @@ are retained indefinitely. Restricted to super-admins to read; see
 Decisions in this specification that the current schema and content layer do
 not yet support:
 
-1. **All public content moves into the database.** Rosters, news, club info,
-   and membership tiers leave `src/lib/data/*.json` and become Prisma models,
-   because Admins now edit them from the dashboard and Player accounts
-   auto-create roster entries. `src/lib/repository.ts` keeps its interface —
-   only its implementation changes, so callers stay untouched. Shop products
-   are already in the DB.
-2. **`Player` becomes a table**, with a `published` flag driving public
-   visibility and a relation to the `User` who owns the login.
+1. ~~**All public content moves into the database.**~~ — **done.**
+   Rosters, news, club info, committee roles, and membership tiers have
+   all left `src/lib/data/*.json` and become Prisma models, because Admins
+   now edit them from the dashboard. `src/lib/repository.ts` kept its
+   interface throughout — only its implementation changed, so callers
+   stayed untouched. Shop products, players, news, club info, committee
+   roles, and now membership tiers are all in the DB. Player accounts
+   still don't auto-create roster entries — that's item 2 below, a
+   separate piece of work from the content migration itself.
+2. **`Player` becomes a table** — **done**, with a `published` flag driving
+   public visibility (`src/app/dashboard/roster/**`, Admin-only). Not yet
+   done: the relation to the `User` who owns the login, and auto-creating a
+   Player row when the Player role is added to an account — those still
+   depend on the account-management flow, which continues to link by the
+   loose `User.playerSlug` string today.
 3. **`User.team` is dropped for Trainers** (club-wide) and is meaningful only
    for Players, whose team follows their roster entry.
 4. **`User.role` becomes a set, not a single value.** An account can hold any
@@ -156,8 +180,10 @@ not yet support:
    reference), and an audit log of admin actions (actor, action, target,
    timestamp — no diff). See [Membership/fee records](#membershipfee-records)
    and [Audit log](#audit-log).
-7. **`MembershipTier` gains a fee amount.** `membership-tiers.json` today has
-   no price field; computing "outstanding" requires one per tier.
+7. ~~**`MembershipTier` gains a fee amount.**~~ — **done.**
+   `membership-tiers.json` now carries a `feeAmount` per tier (annual, EUR).
+   The rest of this item — the contribution model and the outstanding
+   computation that consumes this field — is still not built.
 8. **Attendance** keeps its `playerSlug` link but points at the `Player` table
    rather than a JSON file.
 
@@ -179,13 +205,13 @@ Per-role detail lives on each role page.
 | Account management | Create, edit (incl. role set), reset, deactivate | Unchanged |
 | Admin-manages-Admin | Super-admins only | Unchanged |
 | Passwords | Forced change after create/reset | Unchanged |
-| Roster link | Optional, picked from `players.json` | Auto-created/removed as Player role is added/removed, publish-gated |
-| Public content | JSON files, dev-edited | DB-backed, Admin-edited |
-| Membership tiers | No fee amount | Fee amount per tier |
+| Roster link | Optional, picked from the `Player` table via `User.playerSlug` | Auto-created/removed as Player role is added/removed, publish-gated |
+| Public content | All DB-backed, Admin-edited: player profiles (`/dashboard/roster`), news (`/dashboard/news`), club info (`/dashboard/club-info`), committee roles (`/dashboard/committee`), membership tiers (`/dashboard/membership-tiers`) | Unchanged — content migration complete |
+| Membership tiers | Fee amount per tier (`membership-tiers.json`, annual EUR) | Unchanged |
 | Attendance | Trainer/Admin mark, player sees own | Unchanged |
-| Attendance reports | None | Trainer + Admin |
-| Fee records | None | Manual entry; Admin sees all, member sees own itemized, outstanding auto-computed |
-| Audit log | None | Covers accounts, events, content, and fee-record changes (incl. super-admin actions); super-admin only can view |
+| Attendance reports | Trainer + Admin (`/dashboard/attendance`) | Unchanged |
+| Fee records | Manual entry (`/dashboard/fees`); Admin sees all, member sees own itemized, outstanding auto-computed; audit-logged | Unchanged |
+| Audit log | Covers accounts (incl. super-admin grant/revoke), events/attendance, roster CMS, news, club info, committee roles, membership tiers, and fee-record changes (incl. super-admin and Trainer actions); super-admin only can view (`/dashboard/audit-log`) | Unchanged |
 | Guest access | Full public read, names visible | Unchanged |
 
 Two rows are worth calling out because they **reduce** existing access rather
@@ -201,15 +227,69 @@ exists, and ordinary Admins lose the ability to create fellow Admins.
 2. ~~**Multi-role account model**~~ — **done.** `User.roles` is a
    comma-separated set (`PLAYER`/`TRAINER`/`ADMIN` in any combination),
    plus the `isActive` and `mustChangePassword` fields and the account
-   edit/reset/disable UI at `/dashboard/users/[id]`. Not done: writing to
-   an audit log on these mutations (the log itself doesn't exist yet — see
-   step 6), and any UI to grant/revoke `isSuperAdmin` (still DB/seed-only).
-3. ~~**Trainer de-scoping**~~ — **done.** `canManageTeam` no longer checks
-   `user.team`; account creation/edit no longer asks a Trainer for one.
-4. ~~**Player schedule widening**~~ — **done.** `/dashboard/schedule` and the
-   event detail page show the whole club to every authenticated role.
-5. **Content migration to the DB** — the largest piece; unblocks roster
-   auto-create, publish gating, the CMS, and membership tier fee amounts.
-6. **Attendance reports, fee records, audit log** — new features on top of the
-   migrated model. The audit log should be scoped to cover content and fee
-   mutations from the start, not bolted on later.
+   edit/reset/disable UI at `/dashboard/users/[id]`. Audit-log writes on
+   these mutations landed in step 10 below. Grant/revoke of `isSuperAdmin`
+   itself shipped separately — see [Super-admin](roles/super-admin.md).
+3. ~~**Trainer de-scoping**~~ — **done.** Trainers are club-wide: `canManageTeam`
+   no longer checks `user.team`, the account creation/edit forms drop the team
+   field for Trainer, and `/dashboard/schedule/new` offers any team (not
+   locked to one). `User.team` is `null` for Trainer accounts going forward.
+4. ~~**Player schedule widening**~~ — **done.** `/dashboard/schedule` and
+   `/dashboard/schedule/[id]` no longer scope by `user.team` for any
+   authenticated role — every member sees the whole club's schedule.
+   Attendance visibility (own record only) is unchanged.
+5. ~~**Attendance reports**~~ — **done.** `/dashboard/attendance` (Trainer +
+   Admin, gated by `canManageTeam`) shows per-player and per-team attendance
+   counts and a present-rate (excluding unmarked sessions), with optional
+   team/date-range filters. See `src/lib/events.ts`'s
+   `listAttendanceForReport`.
+6. ~~**Player content migration**~~ — **done, partially.** `Player` is now a
+   Prisma model (`prisma/schema.prisma`) with a `published` flag, and
+   `/dashboard/roster` gives Admins a create/edit/publish CMS for it
+   (`src/app/dashboard/roster/**`). `src/lib/repository.ts`'s
+   `getPlayers`/`getPlayer` read from the DB, filtered to `published: true`
+   by default; internal dashboard callers (attendance, scheduling, account
+   linking) pass `{ includeUnpublished: true }` to see the full roster. The
+   public roster/player pages (`/teams`, `/teams/[team]`,
+   `/teams/[team]/[player]`) were switched to `force-dynamic` so publish/edit
+   changes show up without a rebuild. **Not done as part of this**: news,
+   club info, and membership tiers are still JSON; and the roster
+   auto-create/unpublish tied to adding/removing the Player role on an
+   account (`User.playerSlug` is still a loose string link, not a relation)
+   — see [Data model consequences](#data-model-consequences) item 2.
+7. ~~**`MembershipTier` fee amount**~~ — **done, ahead of the content
+   migration below.** `membership-tiers.json` gained a `feeAmount` field
+   (annual, EUR) — see [Data model consequences](#data-model-consequences)
+   item 7. It's the one piece of the fee-records data model that didn't need
+   to wait on `MembershipTier` moving to Prisma, since it's just a new field
+   on the existing JSON shape.
+8. ~~**News, club info, committee roles, and membership tiers to the DB**~~
+   — **done.** ~~**News**~~: `NewsItem` Prisma model, `/dashboard/news`
+   CMS (create/edit/delete), audit-logged, public `/news` and
+   `/news/[slug]` switched to `force-dynamic` — see
+   [News](features/news.md). ~~**Club info + committee roles**~~:
+   `ClubInfo` (singleton) + `ClubRole` Prisma models, `/dashboard/club-info`
+   and `/dashboard/committee` CMS, audit-logged, `/`, `/club`, `/contact`
+   all `force-dynamic`. ~~**Membership tiers**~~: `MembershipTier` Prisma
+   model, `/dashboard/membership-tiers` CMS (create/edit/delete),
+   audit-logged; `Contribution.tierSlug` stayed a loose string reference
+   into `MembershipTier.slug`, no change needed there — see
+   [Public Content & Static Info](features/public-content.md). Content
+   migration is now complete. **Not done**: roster
+   auto-create/unpublish tied to Player role changes on an account — a
+   separate piece of work, still untouched.
+9. ~~**Fee records**~~ — **done.** `Contribution` model, `/dashboard/fees`,
+   `/dashboard/fees/[id]` — see
+   [Membership & Fee Records](features/membership-and-fees.md). Did not
+   wait on step 8 (news/club-info/tiers to the DB); only needed the
+   `feeAmount` field from step 7 and a stable member reference, both
+   already in place.
+10. ~~**Audit log**~~ — **done**, scoped to cover every write path that
+    exists today rather than bolting content/fee mutations on later:
+    `AuditEntry` model, `logAuditEntry` helper, wired into accounts
+    (step 2), events/attendance (step 4), roster CMS (step 5), the
+    step 8 content-migration CMS (news, club info, committee roles,
+    membership tiers), and the step 9 fee-record write — see
+    [Audit Log](features/audit-log.md). Super-admin grant/revoke
+    (`user.grantSuperAdmin`/`user.revokeSuperAdmin`) is covered too, once
+    that UI shipped alongside step 2.

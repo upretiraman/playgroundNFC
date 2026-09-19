@@ -3,6 +3,10 @@ import bcrypt from "bcryptjs";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import playersData from "../src/lib/data/players.json";
+import newsData from "../src/lib/data/news.json";
+import clubData from "../src/lib/data/club.json";
+import rolesData from "../src/lib/data/roles.json";
+import membershipTiersData from "../src/lib/data/membership-tiers.json";
 
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL ?? "file:./dev.db",
@@ -59,7 +63,144 @@ async function main() {
     });
   }
 
-  const players = playersData as Array<{ slug: string; team: string }>;
+  const players = playersData as Array<{
+    slug: string;
+    team: string;
+    name: string;
+    number: number;
+    position: string;
+    bio: string;
+    joinedYear: number;
+    hometown?: string;
+    isCaptain?: boolean;
+  }>;
+
+  for (const p of players) {
+    await db.player.upsert({
+      where: { slug: p.slug },
+      update: {},
+      create: {
+        slug: p.slug,
+        team: p.team,
+        name: p.name,
+        number: p.number,
+        position: p.position,
+        bio: p.bio,
+        joinedYear: p.joinedYear,
+        hometown: p.hometown ?? null,
+        isCaptain: p.isCaptain ?? false,
+        published: true,
+      },
+    });
+  }
+
+  const news = newsData as Array<{
+    slug: string;
+    title: string;
+    date: string;
+    summary: string;
+    body: string;
+    team?: string;
+    coverImage?: string;
+  }>;
+
+  for (const n of news) {
+    await db.newsItem.upsert({
+      where: { slug: n.slug },
+      update: {},
+      create: {
+        slug: n.slug,
+        title: n.title,
+        date: new Date(`${n.date}T00:00:00`),
+        summary: n.summary,
+        body: n.body,
+        team: n.team ?? null,
+        coverImage: n.coverImage ?? null,
+      },
+    });
+  }
+
+  const club = clubData as {
+    name: string;
+    shortName: string;
+    foundedYear: number;
+    city: string;
+    country: string;
+    motto: string;
+    values: string[];
+    mission: string;
+    email: string;
+    instagram?: string;
+    whatsapp?: string;
+    address: string;
+  };
+
+  await db.clubInfo.upsert({
+    where: { id: "club-info" },
+    update: {},
+    create: {
+      id: "club-info",
+      name: club.name,
+      shortName: club.shortName,
+      foundedYear: club.foundedYear,
+      city: club.city,
+      country: club.country,
+      motto: club.motto,
+      values: club.values.join("\n"),
+      mission: club.mission,
+      email: club.email,
+      instagram: club.instagram ?? null,
+      whatsapp: club.whatsapp ?? null,
+      address: club.address,
+    },
+  });
+
+  const roles = rolesData as Array<{
+    slug: string;
+    title: string;
+    reportsTo: string;
+    summary: string;
+    duties: string[];
+  }>;
+
+  for (const [index, r] of roles.entries()) {
+    await db.clubRole.upsert({
+      where: { slug: r.slug },
+      update: {},
+      create: {
+        slug: r.slug,
+        title: r.title,
+        reportsTo: r.reportsTo,
+        summary: r.summary,
+        duties: r.duties.join("\n"),
+        order: index,
+      },
+    });
+  }
+
+  const membershipTiers = membershipTiersData as Array<{
+    slug: string;
+    name: string;
+    description: string;
+    friendlies: string;
+    tournaments: string;
+    feeAmount: number;
+  }>;
+
+  for (const t of membershipTiers) {
+    await db.membershipTier.upsert({
+      where: { slug: t.slug },
+      update: {},
+      create: {
+        slug: t.slug,
+        name: t.name,
+        description: t.description,
+        friendlies: t.friendlies,
+        tournaments: t.tournaments,
+        feeAmount: t.feeAmount,
+      },
+    });
+  }
 
   const boysTraining = await db.event.upsert({
     where: { id: "seed-boys-training" },

@@ -19,16 +19,13 @@ export default async function NewSessionPage() {
     redirect("/dashboard");
   }
 
-  const teamOptions = user.roles.includes("ADMIN")
-    ? [
-        { value: "boys", label: "Boys Team" },
-        { value: "girls", label: "Girls Team" },
-        { value: "both", label: "Both Teams (club-wide)" },
-      ]
-    : [
-        { value: "boys", label: "Boys Team" },
-        { value: "girls", label: "Girls Team" },
-      ];
+  const teamOptions = [
+    { value: "boys", label: "Boys Team" },
+    { value: "girls", label: "Girls Team" },
+    ...(user.roles.includes("ADMIN")
+      ? [{ value: "both", label: "Both Teams (club-wide)" }]
+      : []),
+  ];
 
   return (
     <div className="bg-cream py-16 sm:py-20">

@@ -4,12 +4,13 @@ Training sessions and games/matches: creating and editing them, marking who
 showed up, and surfacing the schedule both publicly (`/training`, home page
 teaser) and to members (`/dashboard/schedule`). The one capability that
 already reads/writes live from Postgres/libSQL rather than JSON, and the one
-with the most current-vs-target movement — team-scoping is being removed
+with the most current-vs-target movement — team-scoping has been removed
 entirely.
 
-**Status**: Live, including the Trainer de-scoping and Player schedule
-widening — Trainers manage any team and Players see the whole club schedule.
-Not built: attendance reports.
+**Status**: Live. Team-scoping has been removed entirely — Trainers are
+club-wide and every member role sees the whole club's schedule. Attendance
+reports are the one piece of this document still target-only — see
+[Current vs. target](#current-vs-target).
 
 ## User stories
 
@@ -42,14 +43,21 @@ Not built: attendance reports.
   date, start/end time, venue, address, and (for games) opponent or (for
   training) a plan; a new event auto-creates an `UNKNOWN` attendance row
   for every player on the affected team(s) (already implemented).
-- A Trainer can create/edit/cancel events and mark attendance for **any**
-  team, not just one — this is a **behavior change**, not an extension: it
-  removes today's `canManageTeam` team boundary. See
+- A Trainer can create/edit/mark attendance for **any** team, not just
+  one — this **removed** the previous `canManageTeam` team boundary. See
   [docs/roles/trainer.md](../roles/trainer.md).
+- A Trainer or Admin can cancel/delete an event they're authorized to manage
+  (`canManageEventTeam` — same boundary as editing, so a "both"/club-wide
+  event stays Admin-only to delete). Deleting removes the `Event` row and
+  cascades its `Attendance` rows; there is no soft-cancelled state to show
+  elsewhere, since removal alone satisfies "stops showing on the public
+  site." Audit-logged as `event.delete`. **Built**: `deleteEvent`
+  (`src/app/dashboard/schedule/actions.ts`), `DeleteEventButton`
+  (`src/app/dashboard/schedule/[id]/page.tsx`).
 - Club-wide ("both") events remain Admin-only to create — unchanged by the
   Trainer de-scoping.
-- A Player sees the **whole club's** schedule (today: own team only, per
-  `schedule/page.tsx:16`) but only **their own** attendance record.
+- A Player sees the **whole club's** schedule but only **their own**
+  attendance record.
 - Attendance reports (per-player/per-team summaries over a date range) are
   new — Trainer and Admin only, no equivalent exists today.
 - Two Trainers editing/cancelling the same event is **silent
@@ -70,8 +78,8 @@ Not built: attendance reports.
 
 | Area | Today | Target |
 |---|---|---|
-| Trainer scope | Club-wide, any team (`canManageTeam`, `src/lib/auth-helpers.ts`) | Unchanged |
-| Trainer `team` field | Dropped from account creation/edit | Unchanged |
+| Trainer scope | Club-wide, any team (`canManageTeam`) | Unchanged |
+| Trainer `team` field | Dropped — always `null` | Unchanged |
 | Player schedule view | Whole club (`schedule/page.tsx`) | Unchanged |
 | Player attendance view | Own record | Unchanged |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
@@ -80,12 +88,15 @@ Not built: attendance reports.
 ## Data model changes
 
 - No new tables — `Event` and `Attendance` already model everything needed.
-- `canManageTeam` / `canManageEventTeam` in `src/lib/auth-helpers.ts` drop
-  their team-equality check for Trainers (Admin behavior already ignores
+- `canManageTeam` / `canManageEventTeam` in `src/lib/auth-helpers.ts` no
+  longer check team equality for Trainers (Admin behavior already ignored
   team). `canManageEventTeam`'s "both" → Admin-only branch is unchanged.
-- Depends on [Account Management](./account-management.md)'s `User.team`
-  removal for Trainers landing in the same wave — see the build order in
-  [docs/features.md](../features.md).
+- `User.team` removal for Trainers (see
+  [Account Management](./account-management.md)) landed together with this.
+- Widening the Player schedule view dropped the `user.team` filter in
+  `schedule/page.tsx` and `schedule/[id]/page.tsx` entirely — every
+  authenticated role now reads the full `listEvents()`/event set, no schema
+  change involved.
 - Attendance reports are a new read path over existing `Attendance` rows —
   no schema change, just new queries/UI.
 
@@ -100,6 +111,6 @@ restate the matrix, only the acceptance criteria that follow from it.
 ## Proposed issues
 
 - [x] **Drop team-scoping from `canManageTeam`/`canManageEventTeam` for Trainers**.
-- [x] **Remove the team field from Trainer account creation** (`NewUserForm`, `EditUserForm`, `createUser`/`updateUser` actions).
-- [x] **Widen Player schedule view to the whole club** — `schedule/page.tsx` and the event detail page no longer restrict by team.
+- [x] **Remove the team field from Trainer account creation** (`NewUserForm`, `createUser` action).
+- [x] **Widen Player schedule view to the whole club** — `schedule/page.tsx`, a scope change plus tests.
 - [ ] **Build attendance reports** (per-player and per-team, date-range filter) for Trainer + Admin.

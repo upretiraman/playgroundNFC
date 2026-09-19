@@ -3,11 +3,13 @@
 A record of every mutation an Admin or super-admin makes — accounts,
 events, content, and fee records — readable only by super-admins. Exists so
 ordinary Admin actions stay reviewable by a smaller circle, even though the
-site has no self-service undo or version history anywhere else. Nothing in
-this capability exists in code today.
+site has no self-service undo or version history anywhere else.
 
-**Status**: Not built. Target only. Depends on nearly every other capability
-existing first, since each one is a source of entries.
+**Status**: Built for every write path that exists today — `AuditEntry`
+Prisma model, `src/lib/audit.ts`'s `logAuditEntry` helper, wired into
+account mutations (including super-admin grant/revoke), event/attendance
+mutations, roster CMS mutations, and contribution entry — plus
+`/dashboard/audit-log` (super-admin-only read view).
 
 ## User stories
 
@@ -31,16 +33,22 @@ existing first, since each one is a source of entries.
   [News](./news.md) / [Teams & Player Rosters](./teams-and-rosters.md)
   (any CMS edit), and
   [Membership & Fee Records](./membership-and-fees.md) (record a
-  contribution) writes one audit entry.
+  contribution) writes one audit entry. **Built**, including super-admin
+  grant/revoke.
 - Each entry records **who** (actor), **what action**, **what target**, and
-  **when** — no before/after diff of changed values.
+  **when** — no before/after diff of changed values. **Built**
+  (`AuditEntry.actorId`/`action`/`targetType`+`targetId`/`createdAt`).
 - Entries are **retained indefinitely** — no automatic pruning or
-  expiration.
+  expiration. **Built** — no delete/prune path exists.
 - Reading the log is restricted to accounts with `isSuperAdmin: true`; an
   ordinary Admin gets no UI entry point and the underlying query is denied
-  server-side if attempted directly.
+  server-side if attempted directly. **Built**
+  (`/dashboard/audit-log` redirects anyone without `isSuperAdmin`; the
+  dashboard-home link card is likewise gated).
 - Nothing is exempted — a super-admin's own actions appear in the log they
-  can read, including actions only a super-admin can take.
+  can read, including actions only a super-admin can take. **Built** — the
+  log write happens inside the same action every actor calls, so a
+  super-admin's own mutations are captured the same as anyone else's.
 
 ## Out of scope
 
@@ -49,30 +57,42 @@ existing first, since each one is a source of entries.
 - Log export, search UI polish, or filtering beyond what's needed to make
   an indefinitely-growing log usable — a first pass can be a simple
   reverse-chronological list; don't over-build this ahead of real usage.
-- Logging Trainer or Player actions — the spec scopes this to Admin/
-  super-admin mutations only; Trainers and Players don't have mutation
-  rights this document would need to cover today.
+  **Built this way**: `/dashboard/audit-log` is an unpaginated list of the
+  most recent 200 entries, nothing more.
+- ~~Logging Trainer or Player actions~~ — **resolved, logged anyway**. The
+  spec's original assumption that "Trainers and Players don't have
+  mutation rights this document would need to cover today" doesn't hold:
+  Trainers create/edit events and mark attendance through the exact same
+  server actions an Admin uses (`canManageTeam` covers both). Since
+  `createEvent`/`updatePlan`/`setAttendance` are one shared write path,
+  branching the audit write on the actor's role would add complexity for
+  no real benefit — logging every call, Trainer or Admin, is simpler and
+  matches the "nothing is exempted" principle in
+  [docs/roles-and-permissions.md](../roles-and-permissions.md) better than
+  carving out an exception would.
 
 ## Current vs. target
 
 | Area | Today | Target |
 |---|---|---|
-| Audit log | Does not exist | Covers accounts, events, content, and fee-record mutations (incl. super-admin actions) |
-| Diff tracking | N/A | None — who/action/target/when only |
-| Read access | N/A | Super-admin only |
-| Retention | N/A | Indefinite |
+| Audit log | Covers account (incl. super-admin grant/revoke), event/attendance, roster CMS, and contribution mutations (incl. super-admin actions) | Unchanged |
+| Diff tracking | None — who/action/target/when only | Unchanged |
+| Read access | Super-admin only (`/dashboard/audit-log`) | Unchanged |
+| Retention | Indefinite | Unchanged |
 
 ## Data model changes
 
-- New Prisma model: audit log entry (actor `User` reference, action
-  string, target type + id, timestamp). No diff/payload field by design.
-- This model should exist **before or alongside** the first write path that
-  needs it — per the roles spec's suggested build order, scope it to cover
-  content and fee mutations from the start rather than bolting those on
-  later once the log already exists for accounts/events.
+- **Built**: `AuditEntry` Prisma model — `actorId` (→ `User.id`), `action`
+  (a short dotted string like `"user.create"`, `"event.setAttendance"`,
+  `"player.setPublished"`, `"contribution.create"`), `targetType`
+  (`"User"` | `"Event"` | `"Attendance"` | `"Player"` | `"Contribution"`),
+  `targetId`, `createdAt`. No diff/payload field, by design.
+- The model landed alongside the first write paths that needed it — the
+  account, event, roster, and fee-record actions were all instrumented in
+  the same change, per the roles spec's suggested build order.
 - Depends on the `isSuperAdmin` flag from
   [Account Management](./account-management.md) for the read-permission
-  gate.
+  gate — already in place.
 
 ## Permissions
 
@@ -83,10 +103,10 @@ not restate it beyond the acceptance criteria above.
 
 ## Proposed issues
 
-- [ ] **Add an audit log entry Prisma model** (actor, action, target type/id, timestamp).
-- [ ] **Add a shared `logAuditEntry` helper** called from every mutating server action across the other capability docs, so each capability's write path stays a one-line addition rather than a bespoke integration.
-- [ ] **Wire audit writes into Account Management's mutations** (create/edit/reset/disable, super-admin grant/revoke).
-- [ ] **Wire audit writes into Event Scheduling & Attendance's mutations** (create/edit/cancel event, mark attendance).
-- [ ] **Wire audit writes into the CMS mutations** (Public Content, News, Teams & Rosters).
-- [ ] **Wire audit writes into Membership & Fee Records' contribution entry**.
-- [ ] **Build the super-admin-only audit log read view** (reverse-chronological list, no diff).
+- [x] **Add an audit log entry Prisma model** (actor, action, target type/id, timestamp) — done, `AuditEntry`.
+- [x] **Add a shared `logAuditEntry` helper** called from every mutating server action across the other capability docs, so each capability's write path stays a one-line addition rather than a bespoke integration — done, `src/lib/audit.ts`.
+- [x] **Wire audit writes into Account Management's mutations** (create/edit/reset/disable, grant/revoke super-admin) — done, `src/app/dashboard/users/actions.ts`.
+- [x] **Wire audit writes into Event Scheduling & Attendance's mutations** (create event, edit plan, mark attendance, cancel/delete event) — done, `src/app/dashboard/schedule/actions.ts`.
+- [x] **Wire audit writes into the Teams & Player Rosters CMS mutations** (create, edit, publish/unpublish) — done, `src/app/dashboard/roster/actions.ts`. Public Content and News have no dashboard mutations yet to wire in.
+- [x] **Wire audit writes into Membership & Fee Records' contribution entry** — done, `src/app/dashboard/fees/actions.ts`.
+- [x] **Build the super-admin-only audit log read view** (reverse-chronological list, no diff) — done, `/dashboard/audit-log`.

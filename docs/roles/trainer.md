@@ -76,21 +76,19 @@ outside the schedule and attendance.
 | | Today | Target |
 |---|---|---|
 | Team scope | Club-wide, any team (`canManageTeam`, `src/lib/auth-helpers.ts`) | Unchanged |
-| `team` field | Dropped from account creation/edit | Unchanged |
+| `team` field | Dropped — always `null` | Unchanged |
 | Training sessions | Create/edit, any team | Unchanged |
 | Games | Create/edit, any team | Unchanged |
-| Cancel/delete events | Any team | Unchanged |
+| Cancel/delete events | Built (`deleteEvent`, `DeleteEventButton`), any team | Unchanged |
 | Club-wide events | Blocked (`canManageEventTeam`) | Unchanged — still blocked |
 | Attendance marking | Any team | Unchanged |
-| Attendance reports | Do not exist | Can view |
+| Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
 | Accounts / content / fees / audit | No access | Unchanged — no access |
 | Roles | Can combine with Player/Admin | Unchanged |
 
-What shipped: `canManageTeam` (`src/lib/auth-helpers.ts`) dropped its
-team-equality check for Trainers, the new-session form
-(`src/app/dashboard/schedule/new/page.tsx`) offers a Trainer both Boys and
-Girls (not the Admin-only club-wide option), and `NewUserForm`/`EditUserForm`
-no longer ask for a team when only Trainer is selected.
-
-What's left: attendance reports (per-player/per-team summaries over a date
-range) — see [Event Scheduling & Attendance](../features/event-scheduling-and-attendance.md).
+Team scoping has been removed: `canManageTeam` no longer takes a team to
+compare against, the account creation/edit forms drop the team field once
+Trainer is selected, and `/dashboard/schedule/new` offers Trainers the same
+Boys/Girls choice as an Admin (minus the club-wide "both" option), rather than
+locking the `NewEventForm` select the way it still does for a single-option
+list.

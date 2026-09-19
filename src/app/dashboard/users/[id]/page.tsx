@@ -5,6 +5,7 @@ import Container from "@/components/Container";
 import EditUserForm from "@/components/dashboard/EditUserForm";
 import ResetPasswordButton from "@/components/dashboard/ResetPasswordButton";
 import ToggleActiveButton from "@/components/dashboard/ToggleActiveButton";
+import SuperAdminToggleButton from "@/components/dashboard/SuperAdminToggleButton";
 import { canManageAdmins, getSessionUser } from "@/lib/auth-helpers";
 import { parseRoles } from "@/lib/auth-types";
 import { db } from "@/lib/db";
@@ -28,7 +29,7 @@ export default async function EditUserPage({
 
   const [target, players] = await Promise.all([
     db.user.findUnique({ where: { id } }),
-    repository.getPlayers(),
+    repository.getPlayers(undefined, { includeUnpublished: true }),
   ]);
   if (!target) notFound();
 
@@ -36,6 +37,15 @@ export default async function EditUserPage({
   if (targetRoles.includes("ADMIN") && !canManageAdmins(user)) {
     redirect("/dashboard/users");
   }
+
+  const canManageSuperAdmin = canManageAdmins(user) && targetRoles.includes("ADMIN");
+  const isLastActiveSuperAdmin =
+    canManageSuperAdmin &&
+    target.isSuperAdmin &&
+    target.isActive &&
+    (await db.user.count({
+      where: { isSuperAdmin: true, isActive: true, id: { not: target.id } },
+    })) === 0;
 
   return (
     <div className="bg-cream py-16 sm:py-20">
@@ -105,6 +115,27 @@ export default async function EditUserPage({
               )}
             </div>
           </div>
+
+          {canManageSuperAdmin && (
+            <div className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm sm:col-span-2">
+              <h2 className="font-display text-sm uppercase tracking-wide text-charcoal-soft">
+                Super-admin Access
+              </h2>
+              <p className="mt-1 text-sm text-charcoal-soft">
+                {target.isSuperAdmin
+                  ? "Can manage fellow Administrators, grant/revoke this flag, and read the audit log."
+                  : "An ordinary Administrator — cannot manage fellow Admins or read the audit log."}
+              </p>
+              <div className="mt-4">
+                <SuperAdminToggleButton
+                  userId={target.id}
+                  isSuperAdmin={target.isSuperAdmin}
+                  memberName={target.name}
+                  isLastSuperAdmin={isLastActiveSuperAdmin}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </Container>
     </div>

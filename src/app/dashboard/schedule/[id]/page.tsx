@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Container from "@/components/Container";
 import PlanEditor from "@/components/dashboard/PlanEditor";
 import AttendanceRow from "@/components/dashboard/AttendanceRow";
+import DeleteEventButton from "@/components/dashboard/DeleteEventButton";
 import { getSessionUser, canManageEventTeam } from "@/lib/auth-helpers";
 import { getEventWithAttendance } from "@/lib/events";
 import { repository } from "@/lib/repository";
@@ -26,11 +27,14 @@ export default async function EventDetailPage({
   const event = await getEventWithAttendance(id);
   if (!event) notFound();
 
+  // Every member role sees any event, whole-club — see docs/roles/player.md.
   const eventTeam = event.team as TeamSlug | "both";
   const canEdit = canManageEventTeam(user, eventTeam);
 
   const rosterTeam = eventTeam === "both" ? undefined : eventTeam;
-  const players = await repository.getPlayers(rosterTeam);
+  const players = await repository.getPlayers(rosterTeam, {
+    includeUnpublished: true,
+  });
   const playerBySlug = new Map(players.map((p) => [p.slug, p]));
 
   const attendanceRows = event.attendances
@@ -49,12 +53,15 @@ export default async function EventDetailPage({
   return (
     <div className="bg-cream py-16 sm:py-20">
       <Container className="max-w-3xl">
-        <Link
-          href="/dashboard/schedule"
-          className="font-display text-sm uppercase tracking-wide text-crimson hover:text-crimson-dark"
-        >
-          &larr; Schedule
-        </Link>
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href="/dashboard/schedule"
+            className="font-display text-sm uppercase tracking-wide text-crimson hover:text-crimson-dark"
+          >
+            &larr; Schedule
+          </Link>
+          {canEdit && <DeleteEventButton eventId={event.id} />}
+        </div>
 
         <div className="mt-6 flex items-center gap-2">
           <span

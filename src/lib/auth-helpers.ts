@@ -18,7 +18,7 @@ export async function requireRole(
   return user;
 }
 
-/** Trainers are club-wide — any Trainer may manage any team's events. */
+/** Trainers are club-wide (see docs/roles/trainer.md) — any Trainer may manage any team. */
 export function canManageTeam(user: SessionUser) {
   return user.roles.includes("ADMIN") || user.roles.includes("TRAINER");
 }

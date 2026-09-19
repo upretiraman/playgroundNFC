@@ -32,14 +32,22 @@ fellow Admins and reading the audit log, see [Super-admin](super-admin.md).
 
 Admins manage all public website content from the dashboard:
 
-- News articles
+- News articles — **built**: `/dashboard/news` (create, edit, delete)
 - Team rosters, including publishing or unpublishing auto-created entries
+  — **built**: `/dashboard/roster` (see [Player](player.md))
 - Shop products
-- Club info — mission, motto, values, contact details
-- Membership tiers
+- Club info — mission, motto, values, contact details — **built**:
+  `/dashboard/club-info`
+- Committee roles — **built**: `/dashboard/committee` (create, edit,
+  delete; display order set by an editable number, not drag-and-drop)
+- Membership tiers — **built**: `/dashboard/membership-tiers` (create,
+  edit, delete)
 
 This is what moves the site off dev-edited JSON files; see
 [Data model consequences](../roles-and-permissions.md#data-model-consequences).
+Player profiles, news, club info, committee roles, and membership tiers
+have all made that move — the content migration this bullet list
+describes is complete.
 
 ## Records
 
@@ -47,7 +55,9 @@ This is what moves the site off dev-edited JSON files; see
 - **Membership/fee contribution records** for all members, entered manually
   — amount, date, and period/tier per contribution. Outstanding is computed
   automatically from the tier's fee, not entered by hand. Sees an itemized
-  view per member, the same shape a member sees for themselves.
+  view per member, the same shape a member sees for themselves. Built:
+  `/dashboard/fees` (list of every Player-role member) and
+  `/dashboard/fees/[id]` (itemized view + record-contribution form).
 
 ## Multi-role
 
@@ -85,10 +95,10 @@ An Admin account can also hold Trainer and/or Player roles — see
 | Create other Admins | **No** — super-admin only | Unchanged |
 | Events | Full control, any team | Unchanged |
 | Club-wide events | Admin-only | Unchanged |
-| Public content | JSON files, dev-edited | Full CMS from the dashboard |
-| Attendance reports | Do not exist | Can view |
-| Fee records | Do not exist | Sees all, itemized; manual entry, outstanding auto-computed |
-| Audit log | Does not exist | Covers accounts, events, content, and fees (incl. super-admin actions) — **no access** to read it, super-admin only |
+| Public content | All full CMS from the dashboard: player profiles (`/dashboard/roster`, create/edit/publish/unpublish), news (`/dashboard/news`), club info (`/dashboard/club-info`), committee roles (`/dashboard/committee`), membership tiers (`/dashboard/membership-tiers`) | Unchanged — content migration complete |
+| Attendance reports | Can view (`/dashboard/attendance`) | Unchanged |
+| Fee records | Sees all, itemized (`/dashboard/fees`); manual entry, outstanding auto-computed | Unchanged |
+| Audit log | Covers accounts, events/attendance, roster CMS, and fee records (incl. super-admin actions) — **no access** to read it, super-admin only | Also covers the rest of the CMS once those write paths exist |
 | Roles | Can combine with Trainer/Player | Unchanged |
 
 Losing the ability to create fellow Admins was a **reduction** from what the

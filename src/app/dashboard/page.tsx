@@ -57,6 +57,36 @@ export default async function DashboardPage() {
             </Link>
           )}
 
+          {(user.roles.includes("TRAINER") || user.roles.includes("ADMIN")) && (
+            <Link
+              href="/dashboard/attendance"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Attendance Reports
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Per-player and per-team attendance summaries.
+              </p>
+            </Link>
+          )}
+
+          {(user.roles.includes("PLAYER") || user.roles.includes("ADMIN")) && (
+            <Link
+              href="/dashboard/fees"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Fee Records
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                {user.roles.includes("ADMIN")
+                  ? "Record contributions and see every member's outstanding balance."
+                  : "See your contribution history and what's outstanding."}
+              </p>
+            </Link>
+          )}
+
           {user.roles.includes("ADMIN") && (
             <Link
               href="/dashboard/users"
@@ -73,6 +103,76 @@ export default async function DashboardPage() {
 
           {user.roles.includes("ADMIN") && (
             <Link
+              href="/dashboard/roster"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Manage Roster
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Create, edit, and publish or unpublish player profiles.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
+              href="/dashboard/news"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Manage News
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Publish, edit, and remove news articles.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
+              href="/dashboard/club-info"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Club Info
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Edit mission, motto, values, and contact details.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
+              href="/dashboard/committee"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Manage Committee
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Create, edit, and remove committee roles.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
+              href="/dashboard/membership-tiers"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Membership Tiers
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Create, edit, and remove membership tiers.
+              </p>
+            </Link>
+          )}
+
+          {user.roles.includes("ADMIN") && (
+            <Link
               href="/dashboard/shop"
               className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
             >
@@ -81,6 +181,20 @@ export default async function DashboardPage() {
               </p>
               <p className="mt-2 text-sm text-charcoal-soft">
                 Add, edit, and remove merchandise on the club shop.
+              </p>
+            </Link>
+          )}
+
+          {user.isSuperAdmin && (
+            <Link
+              href="/dashboard/audit-log"
+              className="rounded-xl border border-cream-dark bg-white/60 p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <p className="font-display text-lg text-charcoal">
+                Audit Log
+              </p>
+              <p className="mt-2 text-sm text-charcoal-soft">
+                Who did what to what, and when.
               </p>
             </Link>
           )}

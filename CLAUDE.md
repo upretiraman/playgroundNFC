@@ -21,6 +21,11 @@ libSQL/Turso, NextAuth (Auth.js) v5.
   one commit per logical change with a descriptive message, push after each.
   No PR unless explicitly asked. Never rewrite/force-push history on this
   branch without being asked.
+- **After implementing and testing a change, stop before opening a PR.**
+  Report what was built and how it was verified (build/lint/smoke test,
+  manual check), ask the user to verify it themselves, and only create a PR
+  once they say to go ahead — don't offer/create one proactively right after
+  finishing the work.
 - **After every change**, report the current git branch and the list of
   files changed (`git branch --show-current` + `git status`/`git diff
   --stat`) — even if nothing was actually committed. This applies whether
@@ -31,16 +36,40 @@ libSQL/Turso, NextAuth (Auth.js) v5.
 Two data layers, deliberately separate:
 
 1. **Static content** (`src/lib/data/*.json`, read via `src/lib/repository.ts`'s
-   `ClubRepository` interface) — club info, teams, players, news, membership
-   tiers, committee roles. Content editors change JSON; if this ever needs a
-   real CMS/DB, only `repository.ts`'s implementation changes, not callers.
+   `ClubRepository` interface) — teams only, at this point. Content editors
+   change JSON; if this ever needs a real CMS/DB, only `repository.ts`'s
+   implementation changes, not callers. **Every other content type has
+   moved to the DB** (see below) — `players.json`/`news.json`/`club.json`/
+   `roles.json`/`membership-tiers.json` still exist only as one-time seed
+   sources in `prisma/seed.ts` and are no longer read at runtime.
 2. **Dynamic data** (Prisma + libSQL/Turso, `src/lib/db.ts` / `src/lib/events.ts`) —
-   user accounts, training/game events, attendance. This is what the member
-   area (`/login`, `/dashboard/**`) reads and writes, and what the public
-   `/`, `/training`, and `/contact` pages read (via `listUpcomingEvents`) so
-   Trainer-scheduled sessions show up on the public site without a rebuild.
-   Those three pages are `export const dynamic = "force-dynamic"` — don't
-   remove that or they'll freeze at build-time content again.
+   user accounts, training/game events, attendance, player profiles
+   (`Player` model, `published` flag gates public visibility), news
+   articles (`NewsItem` model), club info (`ClubInfo`, a singleton row —
+   fixed `id: "club-info"`), committee roles (`ClubRole`, `order` field
+   drives display order), and membership tiers (`MembershipTier`). This is
+   what the member area (`/login`, `/dashboard/**`) reads and writes, and
+   what the public `/`, `/training`, `/contact`, `/club`, `/teams`,
+   `/teams/[team]`, `/teams/[team]/[player]`, `/news`, and `/news/[slug]`
+   pages read (via `listUpcomingEvents` and `repository.getPlayers`/
+   `getPlayer`/`getNews`/`getNewsItem`/`getClubInfo`/`getClubRoles`/
+   `getMembershipTiers`) so Trainer-scheduled sessions and Admin-edited
+   content show up on the public site without a rebuild. Those pages are
+   `export const dynamic = "force-dynamic"` — don't remove that or they'll
+   freeze at build-time content again. Since `Footer.tsx` calls
+   `getClubInfo()` and renders on every page via the root layout, the
+   three remaining statically-rendered routes (`/login`, `/shop`,
+   `/_not-found`) can show a stale footer until the next deploy — a
+   pre-existing characteristic (`/shop` already read DB-backed `Product`
+   data the same way before this), not something to "fix" by making those
+   routes dynamic too.
+   `repository.getPlayers`/`getPlayer` default to `published: true` only;
+   internal dashboard callers (attendance, scheduling, account linking) pass
+   `{ includeUnpublished: true }` to see the full roster — public pages must
+   never pass that. `NewsItem`/`ClubInfo`/`ClubRole`/`MembershipTier` have
+   no such flag — every row is public. `Contribution.tierSlug` is a loose
+   string reference into `MembershipTier.slug`, not a foreign key — same
+   pattern as `Attendance.playerSlug` before `Player` became a table.
 
 ### Auth & roles
 
@@ -52,11 +81,12 @@ below). Session user shape is `SessionUser` in `src/lib/auth-types.ts`:
 
 - **Guest** (no account): full read access to all public pages. Never gate
   a public page behind login.
-- **Player**: read-only `/dashboard/schedule` scoped to their team, sees own
-  attendance highlighted.
-- **Trainer**: create/edit events for their own team only
+- **Player**: read-only `/dashboard/schedule` showing the whole club's
+  schedule (both teams), sees own attendance highlighted.
+- **Trainer**: club-wide — create/edit events for any team
   (`canManageTeam`/`canManageEventTeam` in `src/lib/auth-helpers.ts`), edit
-  training plans, mark attendance.
+  training plans, mark attendance. `team` is always `null` on a Trainer
+  account. Cannot create `team: "both"` (club-wide) events — Admin-only.
 - **Admin**: everything, any team, plus `/dashboard/users` to create
   accounts. Only Admins can manage `team: "both"` (club-wide) events.
 
@@ -73,12 +103,24 @@ created by `prisma/seed.ts`; everyone else is created from
 with one file per role under `docs/roles/`: `guest.md`, `player.md`,
 `trainer.md`, `admin.md`, `super-admin.md`) — read it before changing
 anything about roles, and treat it as the intent when the two disagree. It is
-a spec, not yet implemented; every page ends with a current-vs-target gap
-table, and the index carries a suggested build order. Headline
-differences: Trainers become club-wide (no `team` scoping), Players see the
-whole club schedule, account management grows edit/reset/soft-disable, a
-super-admin flag gates Admin-on-Admin management and the audit log, and public
-content moves out of JSON into the database.
+a spec, not yet fully implemented; every page ends with a current-vs-target
+gap table, and the index carries a suggested build order. Most of it landed
+already — multi-role accounts, the super-admin flag, edit/reset/soft-disable,
+Trainer de-scoping (club-wide, no `team` scoping), Player schedule widening
+(whole club, not just their own team), attendance reports
+(`/dashboard/attendance`), the entire content migration — player profiles,
+news, club info, committee roles, and membership tiers (`Player` +
+`NewsItem` + `ClubInfo` + `ClubRole` + `MembershipTier` DB tables,
+`/dashboard/roster`, `/dashboard/news`, `/dashboard/club-info`,
+`/dashboard/committee`, and `/dashboard/membership-tiers` CMS) — membership/fee
+records (`Contribution` DB table + `/dashboard/fees` and
+`/dashboard/fees/[id]`), and the audit log (`AuditEntry` model +
+`src/lib/audit.ts`'s `logAuditEntry`, wired into every mutating action
+above, plus `/dashboard/audit-log`, super-admin-only) are all built. Still
+open: granting/revoking the super-admin flag from the dashboard (the only
+Admin/super-admin mutation without an audit-log write, since that UI
+doesn't exist yet), and wiring roster auto-create/unpublish into Player
+role changes on an account.
 
 ## Known gotchas (hit these already — don't rediscover them)
 
@@ -108,10 +150,13 @@ content moves out of JSON into the database.
   against Turso, e.g. for a shared dev database or to reproduce a
   production-only issue.
 - **Disabled `<select>`/`<input>` elements are not included in FormData on
-  submit.** `NewEventForm.tsx`'s team selector is disabled for Trainers
-  (locked to their team) and pairs a disabled `<select>` (display only) with
-  a separate `<input type="hidden" name="team">` carrying the real value.
-  Follow this pattern for any other "locked" form field.
+  submit.** `NewEventForm.tsx` supports a "locked" team selector — a disabled
+  `<select>` (display only) paired with a separate
+  `<input type="hidden" name="team">` carrying the real value — for when
+  `teamOptions` has exactly one choice. No role is locked to one team today
+  (Trainer is club-wide), so this path is currently dead but kept for the
+  next role/case that needs it. Follow this pattern for any other "locked"
+  form field.
 - **Server Actions that call `redirect()` throw internally** — Next.js's
   redirect mechanism uses a thrown, digest-tagged error. If a client
   component wraps the action call in try/catch expecting to catch real
@@ -157,12 +202,28 @@ Useful scripts (see `package.json`): `db:migrate`, `db:seed`, `db:reset`
 
 ## Content model reference
 
-- `src/lib/data/club.json` — mission, motto ("More Than a Club"), values
-  (Pride/Passion/Unity), contact info.
-- `src/lib/data/teams.json`, `players.json` — rosters. Player photos are
-  generated initials avatars (`PlayerAvatar.tsx`), not real images.
-- `src/lib/data/roles.json`, `membership-tiers.json` — sourced from the
-  club's actual governance protocol PDF (`public/documents/`), surfaced on
+- `src/lib/data/club.json` is the one-time seed source for the `ClubInfo`
+  singleton row (`prisma/seed.ts` upserts it, fixed `id: "club-info"`) —
+  edit it to seed new dev/test data, but real edits go through
+  `/dashboard/club-info`, not this file. Mission, motto ("More Than a
+  Club"), values (Pride/Passion/Unity), contact info.
+- `src/lib/data/teams.json` — the two teams (boys/girls), still JSON.
+  `src/lib/data/players.json` is the one-time seed source for the `Player`
+  DB table (`prisma/seed.ts` upserts it in, keyed by `slug`, on every seed
+  run) — edit it to seed new dev/test data, but real roster edits go through
+  `/dashboard/roster`, not this file. Player photos are generated initials
+  avatars (`PlayerAvatar.tsx`), not real images.
+- `src/lib/data/roles.json` is the one-time seed source for the `ClubRole`
+  DB table (`prisma/seed.ts` upserts it in, keyed by `slug`, `order` set
+  from each entry's index in the file) — edit it to seed new dev/test
+  data, but real committee-role edits go through `/dashboard/committee`,
+  not this file. `src/lib/data/membership-tiers.json` is likewise the
+  one-time seed source for the `MembershipTier` DB table — real edits go
+  through `/dashboard/membership-tiers`. Both are sourced from the club's
+  actual governance protocol PDF (`public/documents/`), surfaced on
   `/club`.
-- `src/lib/data/news.json` — hand-written articles, unrelated to the
-  training/game event system.
+- `src/lib/data/news.json` is the one-time seed source for the `NewsItem`
+  DB table (`prisma/seed.ts` upserts it in, keyed by `slug`) — edit it to
+  seed new dev/test data, but real articles go through `/dashboard/news`,
+  not this file. Hand-written articles, unrelated to the training/game
+  event system.

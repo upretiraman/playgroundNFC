@@ -12,6 +12,7 @@ export default async function SchedulePage() {
   const user = await getSessionUser();
   if (!user) return null;
 
+  // Every member role sees the whole club's schedule — see docs/roles/player.md.
   const events = await listEvents();
 
   const canCreate = user.roles.includes("TRAINER") || user.roles.includes("ADMIN");
