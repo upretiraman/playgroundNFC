@@ -3,8 +3,8 @@
 A coach. `role: "TRAINER"`.
 
 Part of the [Roles & Permissions](../roles-and-permissions.md) specification.
-**Status: specification** — parts are not built yet, see
-[Current vs. target](#current-vs-target).
+**Status: built.** Club-wide scope, no `team` field, and attendance reports
+are the only remaining gap — see [Current vs. target](#current-vs-target).
 
 Trainers are **club-wide, not scoped to a team**. Any Trainer may run sessions
 for any team.

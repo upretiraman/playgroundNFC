@@ -198,7 +198,7 @@ Per-role detail lives on each role page.
 |---|---|---|
 | Roles | A set — any combination, plus super-admin flag on Admin | Unchanged |
 | Trainer scope | Club-wide, no team (`canManageTeam`) | Unchanged |
-| Trainer `team` field | Dropped — always `null` | Unchanged |
+| Trainer `team` field | Dropped from account creation/edit | Unchanged |
 | Player schedule | Whole club (`schedule/page.tsx`) | Unchanged |
 | Admin over events | Full control of any team | Unchanged — full override |
 | Club-wide events | Admin-only (`canManageEventTeam`) | Unchanged |
